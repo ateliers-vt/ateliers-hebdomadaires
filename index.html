@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ateliers Céramique — Réservations</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --bg2: #f5f5f3; --bg3: #eeecea;
+    --text: #1a1a18; --text2: #6b6b67; --text3: #9a9a96;
+    --border: rgba(0,0,0,0.12); --border2: rgba(0,0,0,0.22);
+    --success-bg: #e1f5ee; --success-text: #085041;
+    --danger-bg: #fcebeb; --danger-text: #791f1f;
+    --info-bg: #e6f1fb; --info-text: #0c447c;
+    --warning-bg: #faeeda; --warning-text: #633806;
+    --radius: 8px; --radius-lg: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1e1e1c; --bg2: #2a2a28; --bg3: #333330;
+      --text: #e8e8e4; --text2: #9a9a96; --text3: #6b6b67;
+      --border: rgba(255,255,255,0.12); --border2: rgba(255,255,255,0.22);
+      --success-bg: #085041; --success-text: #9fe1cb;
+      --danger-bg: #501313; --danger-text: #f09595;
+      --info-bg: #042c53; --info-text: #85b7eb;
+      --warning-bg: #412402; --warning-text: #fac775;
+    }
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 14px; color: var(--text); background: var(--bg3); min-height: 100vh; }
+  .container { max-width: 760px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+  h1 { font-size: 20px; font-weight: 500; margin-bottom: 0.25rem; }
+  .subtitle { font-size: 13px; color: var(--text2); margin-bottom: 1.5rem; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 1.5rem; }
+  .tab { padding: 8px 18px; border: 0.5px solid var(--border2); border-radius: var(--radius); background: transparent; cursor: pointer; font-size: 13px; color: var(--text2); transition: all 0.15s; font-family: inherit; }
+  .tab.active { background: var(--bg); color: var(--text); border-color: var(--border2); font-weight: 500; }
+  .tab:hover:not(.active) { background: var(--bg2); }
+  .section-title { font-size: 11px; font-weight: 500; color: var(--text2); text-transform: uppercase; letter-spacing: .06em; margin-bottom: .75rem; }
+  .card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: .75rem; }
+  .btn { padding: 7px 14px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: transparent; cursor: pointer; font-size: 12px; color: var(--text); font-family: inherit; transition: background .12s; }
+  .btn:hover { background: var(--bg2); }
+  .btn-primary { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .btn-primary:hover { opacity: .85; }
+  .btn-sm { padding: 4px 10px; font-size: 11px; }
+  .btn-danger { color: var(--danger-text); border-color: var(--danger-text); }
+  .btn-danger:hover { background: var(--danger-bg); }
+  input, select { padding: 7px 10px; border: 0.5px solid var(--border2); border-radius: var(--radius); background: var(--bg); color: var(--text); font-size: 13px; font-family: inherit; outline: none; }
+  input:focus, select:focus { border-color: var(--text); }
+  .toolbar { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 1rem; }
+  .field label { font-size: 11px; color: var(--text2); display: block; margin-bottom: 4px; }
+  .inline-form { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .legend { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 1rem; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text2); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+  .month-block { margin-bottom: 1.75rem; }
+  .month-title { font-size: 15px; font-weight: 500; margin-bottom: .75rem; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
+  .cal-header { text-align: center; font-size: 10px; font-weight: 500; color: var(--text2); padding: 4px 0; text-transform: uppercase; letter-spacing: .04em; }
+  .cal-day { min-height: 54px; border-radius: var(--radius); border: 0.5px solid var(--border); padding: 4px; background: var(--bg); }
+  .cal-day.empty { border-color: transparent; background: transparent; }
+  .cal-day.excluded { background: var(--bg2); }
+  .cal-day.has-slot { cursor: pointer; }
+  .cal-day.has-slot:hover { border-color: var(--border2); background: var(--bg2); }
+  .day-num { font-size: 10px; color: var(--text2); margin-bottom: 2px; }
+  .slot-chip { border-radius: 5px; padding: 2px 4px; font-size: 9px; font-weight: 500; line-height: 1.3; margin-top: 2px; display: block; }
+  .chip-open { background: #e1f5ee; color: #085041; }
+  .chip-full { background: #fcebeb; color: #791f1f; }
+  .chip-closed { background: #f1efe8; color: #5f5e5a; }
+  .chip-booked { background: #e6f1fb; color: #0c447c; }
+  .chip-pending { background: #faeeda; color: #633806; }
+  .badge { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; padding: 2px 8px; border-radius: var(--radius); font-weight: 500; }
+  .badge-open { background: var(--success-bg); color: var(--success-text); }
+  .badge-full { background: var(--danger-bg); color: var(--danger-text); }
+  .badge-closed { background: var(--bg2); color: var(--text2); }
+  .badge-booked { background: var(--info-bg); color: var(--info-text); }
+  .badge-pending { background: var(--warning-bg); color: var(--warning-text); }
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; padding: 1rem; }
+  .modal-overlay.open { display: flex; }
+  .modal-box { background: var(--bg); border: 0.5px solid var(--border2); border-radius: var(--radius-lg); padding: 1.25rem; width: 100%; max-width: 380px; }
+  .modal-title { font-size: 15px; font-weight: 500; }
+  .modal-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; }
+  .modal-row:last-of-type { border-bottom: none; }
+  .student-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid var(--border); }
+  .student-row:last-child { border-bottom: none; }
+  .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--info-bg); color: var(--info-text); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; }
+  .credit-badge { background: var(--warning-bg); color: var(--warning-text); border-radius: var(--radius); padding: 2px 8px; font-size: 12px; font-weight: 500; }
+  .credit-badge.low { background: var(--danger-bg); color: var(--danger-text); }
+  .pending-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; }
+  .pending-row:last-child { border-bottom: none; }
+  .excl-tag { background: var(--danger-bg); color: var(--danger-text); border-radius: var(--radius); padding: 3px 8px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px; }
+  .excl-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .notice { font-size: 12px; color: var(--text2); background: var(--bg2); border-radius: var(--radius); padding: 8px 12px; margin-top: .75rem; }
+  .empty { text-align: center; padding: 1.5rem; color: var(--text2); font-size: 13px; }
+  .password-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; gap: 1rem; }
+  .password-screen h2 { font-size: 18px; font-weight: 500; }
+  .password-screen p { font-size: 13px; color: var(--text2); }
+  .pw-form { display: flex; gap: 8px; }
+  .pw-error { font-size: 12px; color: var(--danger-text); }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1><i class="ti ti-plant-2" aria-hidden="true"></i> Ateliers céramique</h1>
+  <p class="subtitle">Réservation des créneaux</p>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('student')"><i class="ti ti-user"></i> Élève</button>
+    <button class="tab" onclick="tryAdminTab()"><i class="ti ti-settings"></i> Administrateur</button>
+  </div>
+
+  <!-- TAB STUDENT -->
+  <div id="tab-student">
+    <div class="card" style="padding:.75rem 1.25rem;margin-bottom:1rem">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:6px">Je suis :</div>
+      <select id="studentSelect" onchange="renderStudentCalendar()" style="width:100%"></select>
+      <div id="creditDisplay" style="margin-top:8px;display:none">
+        <span style="font-size:13px;color:var(--text2)">Mes crédits : </span>
+        <span id="creditCount" class="credit-badge">0</span>
+        <span style="font-size:12px;color:var(--text2);margin-left:6px">séance(s)</span>
+      </div>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#e1f5ee;border:0.5px solid #9fe1cb"></div> Disponible</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#e6f1fb;border:0.5px solid #b5d4f4"></div> Réservé</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#faeeda;border:0.5px solid #fac775"></div> En attente</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#fcebeb;border:0.5px solid #f7c1c1"></div> Complet</div>
+    </div>
+    <div id="studentCalendar"></div>
+    <div class="notice"><i class="ti ti-info-circle"></i> Les annulations et modifications se font via votre professeur.</div>
+  </div>
+
+  <!-- TAB ADMIN (password protected) -->
+  <div id="tab-admin" style="display:none">
+    <div id="adminLock" class="password-screen">
+      <i class="ti ti-lock" style="font-size:32px;color:var(--text2)"></i>
+      <h2>Accès administrateur</h2>
+      <p>Entrez le mot de passe pour accéder à la gestion.</p>
+      <div class="pw-form">
+        <input type="password" id="pwInput" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')checkPw()">
+        <button class="btn btn-primary" onclick="checkPw()">Entrer</button>
+      </div>
+      <div id="pwError" class="pw-error" style="display:none">Mot de passe incorrect.</div>
+      <div class="notice" style="max-width:320px;text-align:center">Mot de passe par défaut : <strong>ceramique</strong><br>Modifiez-le dans le code source (variable ADMIN_PASSWORD).</div>
+    </div>
+
+    <div id="adminContent" style="display:none">
+      <div class="toolbar">
+        <div class="field"><label>Début trimestre</label><input type="date" id="trimStart" value="2025-09-01"></div>
+        <div class="field"><label>Fin trimestre</label><input type="date" id="trimEnd" value="2025-12-20"></div>
+        <div class="field"><label>Places max</label><input type="number" id="maxPlaces" value="8" min="1" max="30" style="width:72px"></div>
+        <button class="btn btn-primary" onclick="generateSlots()"><i class="ti ti-refresh"></i> Générer</button>
+      </div>
+
+      <div style="margin-bottom:1rem">
+        <div class="section-title">Dates exclues (vacances, indisponibilités)</div>
+        <div id="exclusionList" class="excl-tags"></div>
+        <div class="inline-form">
+          <input type="date" id="newExclusion">
+          <button class="btn btn-sm" onclick="addExclusion()"><i class="ti ti-plus"></i> Ajouter</button>
+        </div>
+      </div>
+
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#e1f5ee;border:0.5px solid #9fe1cb"></div> Ouvert</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#fcebeb;border:0.5px solid #f7c1c1"></div> Complet</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f1efe8;border:0.5px solid #d3d1c7"></div> Fermé</div>
+      </div>
+
+      <div id="adminCalendar"></div>
+
+      <div style="margin-top:1.5rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+          <span class="section-title">Élèves & crédits</span>
+          <button class="btn btn-sm btn-primary" onclick="showAddStudent()"><i class="ti ti-plus"></i> Ajouter</button>
+        </div>
+        <div id="addStudentForm" style="display:none;margin-bottom:.75rem">
+          <div class="card">
+            <div class="inline-form">
+              <input type="text" id="newStudentName" placeholder="Prénom Nom" style="flex:1;min-width:140px">
+              <input type="number" id="newStudentCredits" value="10" style="width:80px" placeholder="Crédits">
+              <button class="btn btn-primary btn-sm" onclick="addStudent()">Enregistrer</button>
+              <button class="btn btn-sm" onclick="document.getElementById('addStudentForm').style.display='none'">Annuler</button>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="padding:.5rem 1.25rem"><div id="studentList"></div></div>
+      </div>
+
+      <div style="margin-top:1.5rem">
+        <span class="section-title">Demandes en attente de validation</span>
+        <div class="card" style="padding:.5rem 1.25rem"><div id="pendingList"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ADMIN -->
+<div id="slotModal" class="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <div id="modalTitle" class="modal-title"></div>
+      <button class="btn btn-sm" onclick="closeModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<!-- MODAL STUDENT -->
+<div id="slotModalStudent" class="modal-overlay" onclick="if(event.target===this)closeModalStudent()">
+  <div class="modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <div id="modalTitleStudent" class="modal-title"></div>
+      <button class="btn btn-sm" onclick="closeModalStudent()"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="modalContentStudent"></div>
+  </div>
+</div>
+
+<script>
+const ADMIN_PASSWORD = "ceramique";
+
+let state = {
+  exclusions: ["2025-10-17","2025-10-18","2025-10-24","2025-10-25","2025-11-01","2025-11-11"],
+  slots: [],
+  students: [
+    {id:1, name:"Marie Dupont", credits:10, bookings:[]},
+    {id:2, name:"Thomas Bernard", credits:6, bookings:[]},
+    {id:3, name:"Sophie Martin", credits:4, bookings:[]}
+  ],
+  pending: [],
+  nextId: 4,
+  trimStart: "2025-09-01",
+  trimEnd: "2025-12-20",
+  maxPlaces: 8
+};
+
+const MONTHS = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+const DAYS_FR = ["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
+
+function parseDate(s){const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);}
+function toISO(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function formatFull(d){const days=["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];return`${days[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;}
+
+function checkPw(){
+  const v = document.getElementById('pwInput').value;
+  if(v === ADMIN_PASSWORD){
+    document.getElementById('adminLock').style.display='none';
+    document.getElementById('adminContent').style.display='block';
+    renderAll();
+  } else {
+    document.getElementById('pwError').style.display='block';
+  }
+}
+
+function tryAdminTab(){
+  showTab('admin');
+}
+
+function showTab(t){
+  document.getElementById('tab-student').style.display = t==='student'?'block':'none';
+  document.getElementById('tab-admin').style.display = t==='admin'?'block':'none';
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',(i===0&&t==='student')||(i===1&&t==='admin')));
+  if(t==='student') renderStudentCalendar();
+}
+
+function generateSlots(){
+  state.trimStart = document.getElementById('trimStart').value;
+  state.trimEnd = document.getElementById('trimEnd').value;
+  state.maxPlaces = parseInt(document.getElementById('maxPlaces').value)||8;
+  const start=parseDate(state.trimStart), end=parseDate(state.trimEnd);
+  const excl=new Set(state.exclusions);
+  const existing={};
+  state.slots.forEach(s=>existing[s.id]=s);
+  state.slots=[];
+  let d=new Date(start);
+  while(d<=end){
+    const dow=d.getDay(), iso=toISO(d);
+    if((dow===5||dow===6)&&!excl.has(iso)){
+      const id=iso+'_'+dow;
+      const time=dow===5?'18h00':'10h00';
+      const label=dow===5?'Vendredi 18h':'Samedi 10h';
+      if(existing[id]) state.slots.push(existing[id]);
+      else state.slots.push({id,date:iso,label,time,max:state.maxPlaces,bookings:[],closed:false});
+    }
+    d.setDate(d.getDate()+1);
+  }
+  renderAll(); save();
+}
+
+function renderExclusions(){
+  document.getElementById('exclusionList').innerHTML = state.exclusions.map(e=>{
+    const d=parseDate(e);
+    return`<span class="excl-tag">${d.getDate()} ${MONTHS[d.getMonth()].slice(0,3)} <span style="cursor:pointer;font-weight:700" onclick="removeExclusion('${e}')">×</span></span>`;
+  }).join('');
+}
+
+function addExclusion(){
+  const v=document.getElementById('newExclusion').value;
+  if(v&&!state.exclusions.includes(v)){state.exclusions.push(v);generateSlots();}
+}
+function removeExclusion(e){state.exclusions=state.exclusions.filter(x=>x!==e);generateSlots();}
+
+function buildCalendar(containerId, clickFn, studentId){
+  const el=document.getElementById(containerId);
+  if(!state.slots.length){el.innerHTML='<div class="empty">Aucun créneau. Configurez les dates et cliquez sur Générer.</div>';return;}
+  const slotByDate={};
+  state.slots.forEach(s=>slotByDate[s.date]=s);
+  const excl=new Set(state.exclusions);
+  const start=parseDate(state.trimStart), end=parseDate(state.trimEnd);
+  const firstMonth=new Date(start.getFullYear(),start.getMonth(),1);
+  const lastMonth=new Date(end.getFullYear(),end.getMonth(),1);
+  let html=''; let cur=new Date(firstMonth);
+  while(cur<=lastMonth){
+    const y=cur.getFullYear(),m=cur.getMonth();
+    html+=`<div class="month-block"><div class="month-title">${MONTHS[m]} ${y}</div><div class="cal-grid">`;
+    DAYS_FR.forEach(d=>html+=`<div class="cal-header">${d}</div>`);
+    const firstDay=new Date(y,m,1);
+    let startDow=(firstDay.getDay()+6)%7;
+    for(let i=0;i<startDow;i++) html+=`<div class="cal-day empty"></div>`;
+    const daysInMonth=new Date(y,m+1,0).getDate();
+    for(let day=1;day<=daysInMonth;day++){
+      const iso=`${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      const slot=slotByDate[iso];
+      const isExcl=excl.has(iso)&&!slot;
+      let cls='cal-day'; if(isExcl)cls+=' excluded'; if(slot)cls+=' has-slot';
+      let inner=`<div class="day-num">${day}</div>`;
+      if(slot){
+        const taken=slot.bookings.length, isFull=taken>=slot.max;
+        const isBooked=studentId&&slot.bookings.includes(studentId);
+        const isPending=studentId&&state.pending.find(p=>p.studentId===studentId&&p.slotId===slot.id);
+        let chipCls=slot.closed?'chip-closed':isBooked?'chip-booked':isPending?'chip-pending':isFull?'chip-full':'chip-open';
+        const lbl=slot.label.split(' ')[1];
+        inner+=`<span class="slot-chip ${chipCls}">${lbl}<br>${taken}/${slot.max}</span>`;
+      }
+      const onclick=slot?`onclick="${clickFn}('${slot.id}')"`:'';
+      html+=`<div class="${cls}" ${onclick}>${inner}</div>`;
+    }
+    html+=`</div></div>`;
+    cur.setMonth(cur.getMonth()+1);
+  }
+  el.innerHTML=html;
+}
+
+function openAdminModal(slotId){
+  const s=state.slots.find(x=>x.id===slotId); if(!s) return;
+  const d=parseDate(s.date);
+  document.getElementById('modalTitle').textContent=formatFull(d)+' · '+s.time;
+  const taken=s.bookings.length, isFull=taken>=s.max;
+  let status=s.closed?'<span class="badge badge-closed">Fermé</span>':isFull?'<span class="badge badge-full">Complet</span>':'<span class="badge badge-open">Ouvert</span>';
+  const bookedNames=s.bookings.map(id=>{const st=state.students.find(x=>x.id===id);return st?st.name:'?';});
+  const pendingNames=state.pending.filter(p=>p.slotId===slotId).map(p=>{const st=state.students.find(x=>x.id===p.studentId);return st?st.name:'?';});
+  let html=`<div class="modal-row"><span>Statut</span>${status}</div>`;
+  html+=`<div class="modal-row"><span>Places</span><span>${taken}/${s.max}</span></div>`;
+  if(bookedNames.length) html+=`<div class="modal-row"><span>Inscrits</span><span style="font-size:12px;text-align:right">${bookedNames.join(', ')}</span></div>`;
+  if(pendingNames.length) html+=`<div class="modal-row"><span style="color:var(--warning-text)">En attente</span><span style="font-size:12px;text-align:right">${pendingNames.join(', ')}</span></div>`;
+  html+=`<div style="margin-top:1rem;display:flex;gap:8px">`;
+  html+=`<button class="btn btn-sm" onclick="toggleSlot('${slotId}')">${s.closed?'<i class="ti ti-lock-open"></i> Rouvrir':'<i class="ti ti-lock"></i> Fermer'}</button>`;
+  html+=`</div>`;
+  document.getElementById('modalContent').innerHTML=html;
+  document.getElementById('slotModal').classList.add('open');
+}
+function closeModal(){document.getElementById('slotModal').classList.remove('open');}
+
+function toggleSlot(id){
+  const s=state.slots.find(x=>x.id===id);
+  if(s){s.closed=!s.closed;closeModal();renderAll();save();}
+}
+
+function openStudentModal(slotId){
+  const s=state.slots.find(x=>x.id===slotId); if(!s) return;
+  const studentId=parseInt(document.getElementById('studentSelect').value);
+  const st=state.students.find(x=>x.id===studentId);
+  const d=parseDate(s.date);
+  document.getElementById('modalTitleStudent').textContent=formatFull(d)+' · '+s.time;
+  const taken=s.bookings.length, isFull=taken>=s.max;
+  const isBooked=st&&s.bookings.includes(studentId);
+  const isPending=st&&state.pending.find(p=>p.studentId===studentId&&p.slotId===slotId);
+  let status=s.closed?'<span class="badge badge-closed">Fermé</span>':isBooked?'<span class="badge badge-booked">Confirmé</span>':isPending?'<span class="badge badge-pending">En attente</span>':isFull?'<span class="badge badge-full">Complet</span>':'<span class="badge badge-open">Disponible</span>';
+  let html=`<div class="modal-row"><span>Statut</span>${status}</div>`;
+  html+=`<div class="modal-row"><span>Places restantes</span><span>${s.max-taken}</span></div>`;
+  if(st&&!isBooked&&!isPending&&!isFull&&!s.closed){
+    const hasCredits=st.credits>0;
+    html+=`<div style="margin-top:1rem">`;
+    if(hasCredits) html+=`<button class="btn btn-primary" style="width:100%" onclick="bookSlot('${slotId}')"><i class="ti ti-calendar-plus"></i> Réserver ce créneau</button>`;
+    else html+=`<div style="font-size:12px;color:var(--danger-text);padding:8px;background:var(--danger-bg);border-radius:var(--radius)">Vous n'avez plus de crédits. Contactez votre professeur.</div>`;
+    html+=`</div>`;
+  }
+  document.getElementById('modalContentStudent').innerHTML=html;
+  document.getElementById('slotModalStudent').classList.add('open');
+}
+function closeModalStudent(){document.getElementById('slotModalStudent').classList.remove('open');}
+
+function bookSlot(slotId){
+  const studentId=parseInt(document.getElementById('studentSelect').value);
+  if(!studentId){alert('Choisissez votre nom.');return;}
+  const st=state.students.find(x=>x.id===studentId);
+  if(!st||st.credits<=0) return;
+  if(state.pending.find(p=>p.studentId===studentId&&p.slotId===slotId)) return;
+  state.pending.push({studentId,slotId});
+  closeModalStudent(); renderStudentCalendar(); save();
+  alert('Demande envoyée ! Votre professeur va valider votre inscription.');
+}
+
+function renderStudents(){
+  const el=document.getElementById('studentList');
+  if(!state.students.length){el.innerHTML='<div class="empty">Aucun élève.</div>';return;}
+  el.innerHTML=state.students.map(st=>{
+    const initials=st.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const low=st.credits<2;
+    return`<div class="student-row">
+      <div class="avatar">${initials}</div>
+      <div style="flex:1"><div style="font-weight:500;font-size:13px">${st.name}</div><div style="font-size:11px;color:var(--text2)">${st.bookings.length} réservation(s)</div></div>
+      <span class="credit-badge${low?' low':''}">${st.credits}</span>
+      <input type="number" value="${st.credits}" min="0" style="width:60px;font-size:12px;padding:4px 6px" onchange="setCredits(${st.id},this.value)">
+      <button class="btn btn-sm btn-danger" onclick="removeStudent(${st.id})" aria-label="Supprimer"><i class="ti ti-trash"></i></button>
+    </div>`;
+  }).join('');
+  const sel=document.getElementById('studentSelect');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">-- Choisir mon nom --</option>'+state.students.map(s=>`<option value="${s.id}"${s.id==cur?' selected':''}>${s.name}</option>`).join('');
+}
+
+function setCredits(id,val){
+  const s=state.students.find(x=>x.id===id);
+  if(s){s.credits=Math.max(0,parseInt(val)||0);renderStudents();save();}
+}
+function showAddStudent(){document.getElementById('addStudentForm').style.display='block';document.getElementById('newStudentName').focus();}
+function addStudent(){
+  const name=document.getElementById('newStudentName').value.trim();
+  const credits=parseInt(document.getElementById('newStudentCredits').value)||0;
+  if(!name) return;
+  state.students.push({id:state.nextId++,name,credits,bookings:[]});
+  document.getElementById('newStudentName').value='';
+  document.getElementById('addStudentForm').style.display='none';
+  renderStudents(); save();
+}
+function removeStudent(id){
+  state.students=state.students.filter(x=>x.id!==id);
+  state.slots.forEach(s=>s.bookings=s.bookings.filter(b=>b!==id));
+  state.pending=state.pending.filter(p=>p.studentId!==id);
+  renderAll(); save();
+}
+
+function renderPending(){
+  const el=document.getElementById('pendingList');
+  if(!state.pending.length){el.innerHTML='<div class="empty">Aucune demande en attente.</div>';return;}
+  el.innerHTML=state.pending.map((p,i)=>{
+    const st=state.students.find(x=>x.id===p.studentId);
+    const sl=state.slots.find(x=>x.id===p.slotId);
+    if(!st||!sl) return'';
+    const d=parseDate(sl.date);
+    return`<div class="pending-row">
+      <div style="flex:1"><span style="font-weight:500">${st.name}</span> · ${d.getDate()} ${MONTHS[d.getMonth()].slice(0,3)} · ${sl.time}</div>
+      <button class="btn btn-sm btn-primary" onclick="approvePending(${i})"><i class="ti ti-check"></i> Valider</button>
+      <button class="btn btn-sm btn-danger" onclick="rejectPending(${i})"><i class="ti ti-x"></i></button>
+    </div>`;
+  }).join('');
+}
+
+function approvePending(i){
+  const p=state.pending[i];
+  const st=state.students.find(x=>x.id===p.studentId);
+  const sl=state.slots.find(x=>x.id===p.slotId);
+  if(st&&sl&&sl.bookings.length<sl.max&&!sl.bookings.includes(p.studentId)){
+    if(st.credits>0) st.credits--;
+    sl.bookings.push(p.studentId);
+    st.bookings.push(p.slotId);
+  }
+  state.pending.splice(i,1);
+  renderAll(); save();
+}
+function rejectPending(i){state.pending.splice(i,1);renderPending();}
+
+function renderStudentCalendar(){
+  const studentId=parseInt(document.getElementById('studentSelect').value);
+  const st=state.students.find(x=>x.id===studentId);
+  const credDisp=document.getElementById('creditDisplay');
+  const credCount=document.getElementById('creditCount');
+  if(st){
+    credDisp.style.display='block';
+    credCount.textContent=st.credits;
+    credCount.className='credit-badge'+(st.credits<2?' low':'');
+  } else { credDisp.style.display='none'; }
+  buildCalendar('studentCalendar','openStudentModal',studentId||null);
+}
+
+function renderAll(){
+  renderExclusions();
+  buildCalendar('adminCalendar','openAdminModal',null);
+  renderStudents();
+  renderPending();
+  renderStudentCalendar();
+}
+
+function save(){
+  try{
+    const toSave={...state, trimStart:document.getElementById('trimStart')?document.getElementById('trimStart').value:state.trimStart, trimEnd:document.getElementById('trimEnd')?document.getElementById('trimEnd').value:state.trimEnd};
+    localStorage.setItem('ceramique_hosted_v1',JSON.stringify(toSave));
+  }catch(e){}
+}
+function load(){
+  try{
+    const s=localStorage.getItem('ceramique_hosted_v1');
+    if(s){const d=JSON.parse(s);Object.assign(state,d);}
+  }catch(e){}
+}
+
+load();
+if(document.getElementById('trimStart')) document.getElementById('trimStart').value=state.trimStart;
+if(document.getElementById('trimEnd')) document.getElementById('trimEnd').value=state.trimEnd;
+if(document.getElementById('maxPlaces')) document.getElementById('maxPlaces').value=state.maxPlaces;
+if(!state.slots.length) generateSlots();
+else renderAll();
+renderStudents();
+</script>
+</body>
+</html>
