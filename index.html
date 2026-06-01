@@ -180,6 +180,7 @@ input:focus,select:focus{border-color:var(--text)}
           <div class="field"><label>Fin trimestre</label><input type="date" id="trimEnd" value="2025-12-20" onchange="saveSettings()"></div>
           <div class="field"><label>Places max</label><input type="number" id="maxPlaces" value="8" min="1" max="30" style="width:72px" onchange="saveSettings()"></div>
           <div class="field"><label>&nbsp;</label><button class="btn btn-primary" onclick="generateSlots()"><i class="ti ti-refresh"></i> Générer</button></div>
+        <div class="field"><label>&nbsp;</label><button class="btn" onclick="updateAllMaxPlaces()" title="Mettre à jour le nb de places sur tous les créneaux existants"><i class="ti ti-refresh"></i> Màj places</button></div>
         </div>
         <div style="margin-bottom:1rem">
           <div class="section-title">Dates exclues</div>
@@ -377,9 +378,14 @@ function checkUrlParam(){
   const slug=eleve.toLowerCase();
   const st=students.find(s=>slugify(s.name)===slug);
   if(st){
-    document.getElementById('studentSelect').value=st.id;
-    document.getElementById('studentPickerBlock').style.display='none';
-    onStudentChange();
+    const sel=document.getElementById('studentSelect');
+    // find the option whose value matches st.id (UUID string)
+    const opt=Array.from(sel.options).find(o=>o.value===String(st.id));
+    if(opt){
+      sel.value=opt.value;
+      document.getElementById('studentPickerBlock').style.display='none';
+      onStudentChange();
+    }
   }
 }
 
@@ -418,13 +424,17 @@ function showAdminTab(t){
 // SETTINGS & SLOTS GENERATION
 // ============================================================
 async function saveSettings(){
-  settings.trimStart=document.getElementById('trimStart').value;
-  settings.trimEnd=document.getElementById('trimEnd').value;
-  settings.maxPlaces=parseInt(document.getElementById('maxPlaces').value)||8;
+  // only read form fields if they exist (admin is logged in)
+  const tsEl=document.getElementById('trimStart');
+  const teEl=document.getElementById('trimEnd');
+  const mpEl=document.getElementById('maxPlaces');
+  if(tsEl) settings.trimStart=tsEl.value;
+  if(teEl) settings.trimEnd=teEl.value;
+  if(mpEl) settings.maxPlaces=parseInt(mpEl.value)||8;
   if(settings.id){
     await sbPatch("settings","id=eq."+settings.id,{trim_start:settings.trimStart,trim_end:settings.trimEnd,max_places:settings.maxPlaces,exclusions:settings.exclusions});
   } else {
-    const r=await sbPost("settings",{trim_start:settings.trimStart,trim_end:settings.trimEnd,max_places:settings.maxPlaces,exclusions:[]});
+    const r=await sbPost("settings",{trim_start:settings.trimStart,trim_end:settings.trimEnd,max_places:settings.maxPlaces,exclusions:settings.exclusions||[]});
     if(r&&r[0]) settings.id=r[0].id;
   }
 }
@@ -469,14 +479,23 @@ async function addExclusion(){
   if(!v||(settings.exclusions||[]).includes(v)) return;
   settings.exclusions=[...(settings.exclusions||[]),v];
   await saveSettings();
+  // delete any already-generated slot on that date
+  const existing=slots.find(s=>s.date===v);
+  if(existing){
+    await sbDelete("slots","id=eq."+existing.id);
+    slots=slots.filter(s=>s.date!==v);
+  }
   renderExclusions();
-  generateSlots();
+  renderAdmin();
+  renderStudentCalendar();
+  showToast("Date exclue ajoutée");
 }
 
 async function removeExclusion(e){
   settings.exclusions=(settings.exclusions||[]).filter(x=>x!==e);
   await saveSettings();
   renderExclusions();
+  showToast("Date réintégrée — cliquez Générer pour recréer le créneau");
 }
 
 // ============================================================
@@ -513,8 +532,8 @@ function buildCalendar(containerId, clickFn, studentId){
         const slotBookings=bookings.filter(b=>b.slot_id===slot.id&&b.status==='confirmed');
         const taken=slotBookings.length;
         const isFull=taken>=slot.max_places;
-        const isBooked=studentId&&slotBookings.some(b=>b.student_id===studentId);
-        const hasCancelRequest=studentId&&cancelRequests.some(r=>r.slot_id===slot.id&&r.student_id===studentId&&r.status==='pending');
+        const isBooked=studentId&&slotBookings.some(b=>String(b.student_id)===String(studentId));
+        const hasCancelRequest=studentId&&cancelRequests.some(r=>r.slot_id===slot.id&&String(r.student_id)===String(studentId)&&r.status==='pending');
         let chipCls;
         if(slot.closed) chipCls='chip-closed';
         else if(slot.confirmed) chipCls='chip-confirmed';
@@ -808,9 +827,13 @@ function populateStudentSelect(){
   sel.innerHTML='<option value="">-- Choisir mon nom --</option>'+students.map(s=>`<option value="${s.id}"${s.id==cur?' selected':''}>${s.name}</option>`).join('');
 }
 
+function getSelectedStudentId(){
+  return document.getElementById('studentSelect').value||null;
+}
+
 function onStudentChange(){
-  const studentId=parseInt(document.getElementById('studentSelect').value);
-  const st=students.find(x=>x.id===studentId);
+  const studentId=getSelectedStudentId();
+  const st=students.find(x=>String(x.id)===String(studentId));
   const credDisp=document.getElementById('creditDisplay');
   const credCount=document.getElementById('creditCount');
   if(st){
@@ -822,7 +845,7 @@ function onStudentChange(){
 }
 
 function renderStudentCalendar(){
-  const studentId=parseInt(document.getElementById('studentSelect').value)||null;
+  const studentId=getSelectedStudentId();
   buildCalendar('studentCalendar','openStudentModal',studentId);
 }
 
@@ -831,14 +854,14 @@ function renderStudentCalendar(){
 // ============================================================
 async function openStudentModal(slotId){
   const slot=slots.find(x=>x.id===slotId); if(!slot) return;
-  const studentId=parseInt(document.getElementById('studentSelect').value)||null;
-  const st=students.find(x=>x.id===studentId);
+  const studentId=getSelectedStudentId();
+  const st=students.find(x=>String(x.id)===String(studentId));
   const d=parseDate(slot.date);
   document.getElementById('modalTitleStudent').textContent=formatFull(d)+' · '+slot.time;
   const slotBookings=bookings.filter(b=>b.slot_id===slotId&&b.status==='confirmed');
   const taken=slotBookings.length, isFull=taken>=slot.max_places;
-  const myBooking=st&&slotBookings.find(b=>b.student_id===studentId);
-  const hasCancelReq=st&&cancelRequests.some(r=>r.slot_id===slotId&&r.student_id===studentId&&r.status==='pending');
+  const myBooking=st&&slotBookings.find(b=>String(b.student_id)===String(studentId));
+  const hasCancelReq=st&&cancelRequests.some(r=>r.slot_id===slotId&&String(r.student_id)===String(studentId)&&r.status==='pending');
   let status=slot.confirmed?'<span class="badge badge-confirmed"><i class="ti ti-check"></i> Cours confirmé</span>':slot.closed?'<span class="badge badge-closed">Fermé</span>':myBooking&&hasCancelReq?'<span class="badge badge-pending">Annulation en attente</span>':myBooking?'<span class="badge badge-booked">Vous êtes inscrit(e)</span>':isFull?'<span class="badge badge-full">Complet</span>':'<span class="badge badge-open">Disponible</span>';
   let html=`<div class="modal-row"><span>Statut</span>${status}</div>`;
   html+=`<div class="modal-row"><span>Inscrits</span><span>${taken}/${slot.max_places}</span></div>`;
@@ -874,9 +897,9 @@ async function openStudentModal(slotId){
 function closeModalStudent(){document.getElementById('slotModalStudent').classList.remove('open');}
 
 async function bookSlot(slotId){
-  const studentId=parseInt(document.getElementById('studentSelect').value);
+  const studentId=getSelectedStudentId();
   if(!studentId) return;
-  const st=students.find(x=>x.id===studentId); if(!st||st.credits<=0) return;
+  const st=students.find(x=>String(x.id)===String(studentId)); if(!st||st.credits<=0) return;
   const slot=slots.find(x=>x.id===slotId); if(!slot) return;
   const slotBookings=bookings.filter(b=>b.slot_id===slotId&&b.status==='confirmed');
   if(slotBookings.length>=slot.max_places){showToast("Créneau complet.");return;}
@@ -904,7 +927,7 @@ async function bookSlot(slotId){
 }
 
 async function requestCancel(bookingId, slotId){
-  const studentId=parseInt(document.getElementById('studentSelect').value); if(!studentId) return;
+  const studentId=getSelectedStudentId(); if(!studentId) return;
   const r=await sbPost("cancel_requests",{booking_id:bookingId,slot_id:slotId,student_id:studentId,status:'pending'});
   if(r&&r[0]){
     cancelRequests.push(r[0]);
@@ -929,6 +952,21 @@ function sendEmailNotif(subject, body){
   // We only trigger on admin-side actions to avoid disrupting student UX
   // For student actions, we just show a toast; real email would need a backend
   a.remove();
+}
+
+// ============================================================
+// UPDATE MAX PLACES ON ALL EXISTING SLOTS
+// ============================================================
+async function updateAllMaxPlaces(){
+  const max=parseInt(document.getElementById('maxPlaces').value)||8;
+  if(!confirm('Mettre à jour le nombre de places à '+max+' sur TOUS les créneaux existants ?')) return;
+  // batch update
+  for(const slot of slots){
+    await sbPatch('slots','id=eq.'+slot.id,{max_places:max});
+    slot.max_places=max;
+  }
+  renderAdmin(); renderStudentCalendar();
+  showToast('Places mises à jour sur '+slots.length+' créneaux');
 }
 
 // ============================================================
