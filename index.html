@@ -1,36 +1,863 @@
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ateliers Céramique — Réservations</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;--bg2:#f5f5f3;--bg3:#eeecea;
+  --text:#1a1a18;--text2:#6b6b67;--text3:#9a9a96;
+  --border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.22);
+  --success-bg:#e1f5ee;--success-text:#085041;
+  --danger-bg:#fcebeb;--danger-text:#791f1f;
+  --info-bg:#e6f1fb;--info-text:#0c447c;
+  --warning-bg:#faeeda;--warning-text:#633806;
+  --radius:8px;--radius-lg:12px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1e1e1c;--bg2:#2a2a28;--bg3:#333330;
+  --text:#e8e8e4;--text2:#9a9a96;--text3:#6b6b67;
+  --border:rgba(255,255,255,0.12);--border2:rgba(255,255,255,0.22);
+  --success-bg:#085041;--success-text:#9fe1cb;
+  --danger-bg:#501313;--danger-text:#f09595;
+  --info-bg:#042c53;--info-text:#85b7eb;
+  --warning-bg:#412402;--warning-text:#fac775;
+}}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;color:var(--text);background:var(--bg3);min-height:100vh}
+.container{max-width:800px;margin:0 auto;padding:1.5rem 1rem 3rem}
+h1{font-size:20px;font-weight:500;margin-bottom:.25rem}
+.subtitle{font-size:13px;color:var(--text2);margin-bottom:1.5rem}
+.tabs{display:flex;gap:8px;margin-bottom:1.5rem;flex-wrap:wrap}
+.tab{padding:8px 16px;border:.5px solid var(--border2);border-radius:var(--radius);background:transparent;cursor:pointer;font-size:13px;color:var(--text2);font-family:inherit;transition:all .15s}
+.tab.active{background:var(--bg);color:var(--text);font-weight:500}
+.tab:hover:not(.active){background:var(--bg2)}
+.section-title{font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem}
+.card{background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:.75rem}
+.btn{padding:7px 14px;border-radius:var(--radius);border:.5px solid var(--border2);background:transparent;cursor:pointer;font-size:12px;color:var(--text);font-family:inherit;transition:background .12s}
+.btn:hover{background:var(--bg2)}
+.btn-primary{background:var(--text);color:var(--bg);border-color:var(--text)}
+.btn-primary:hover{opacity:.85}
+.btn-sm{padding:4px 10px;font-size:11px}
+.btn-danger{color:var(--danger-text);border-color:var(--danger-text)}
+.btn-danger:hover{background:var(--danger-bg)}
+.btn-success{color:var(--success-text);border-color:var(--success-text)}
+.btn-success:hover{background:var(--success-bg)}
+input,select{padding:7px 10px;border:.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit;outline:none}
+input:focus,select:focus{border-color:var(--text)}
+.toolbar{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:1rem}
+.field label{font-size:11px;color:var(--text2);display:block;margin-bottom:4px}
+.inline-form{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:1rem}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)}
+.legend-dot{width:10px;height:10px;border-radius:3px}
+.month-block{margin-bottom:1.75rem}
+.month-title{font-size:15px;font-weight:500;margin-bottom:.75rem}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+.cal-header{text-align:center;font-size:10px;font-weight:500;color:var(--text2);padding:4px 0;text-transform:uppercase;letter-spacing:.04em}
+.cal-day{min-height:58px;border-radius:var(--radius);border:.5px solid var(--border);padding:4px;background:var(--bg)}
+.cal-day.empty{border-color:transparent;background:transparent}
+.cal-day.excluded{background:var(--bg2)}
+.cal-day.has-slot{cursor:pointer}
+.cal-day.has-slot:hover{border-color:var(--border2);background:var(--bg2)}
+.day-num{font-size:10px;color:var(--text2);margin-bottom:2px}
+.slot-chip{border-radius:5px;padding:2px 4px;font-size:9px;font-weight:500;line-height:1.3;margin-top:2px;display:block}
+.chip-open{background:#e1f5ee;color:#085041}
+.chip-full{background:#fcebeb;color:#791f1f}
+.chip-closed{background:#f1efe8;color:#5f5e5a}
+.chip-booked{background:#e6f1fb;color:#0c447c}
+.chip-pending-cancel{background:#faeeda;color:#633806}
+.chip-confirmed{background:#d4edda;color:#155724}
+.badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:2px 8px;border-radius:var(--radius);font-weight:500}
+.badge-open{background:var(--success-bg);color:var(--success-text)}
+.badge-full{background:var(--danger-bg);color:var(--danger-text)}
+.badge-closed{background:var(--bg2);color:var(--text2)}
+.badge-booked{background:var(--info-bg);color:var(--info-text)}
+.badge-pending{background:var(--warning-bg);color:var(--warning-text)}
+.badge-confirmed{background:#d4edda;color:#155724}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--bg);border:.5px solid var(--border2);border-radius:var(--radius-lg);padding:1.25rem;width:100%;max-width:400px;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:15px;font-weight:500}
+.modal-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:.5px solid var(--border);font-size:13px}
+.modal-row:last-of-type{border-bottom:none}
+.student-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:.5px solid var(--border)}
+.student-row:last-child{border-bottom:none}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--info-bg);color:var(--info-text);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0}
+.credit-badge{background:var(--warning-bg);color:var(--warning-text);border-radius:var(--radius);padding:2px 8px;font-size:12px;font-weight:500}
+.credit-badge.low{background:var(--danger-bg);color:var(--danger-text)}
+.pending-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:.5px solid var(--border);font-size:13px;flex-wrap:wrap}
+.pending-row:last-child{border-bottom:none}
+.excl-tag{background:var(--danger-bg);color:var(--danger-text);border-radius:var(--radius);padding:3px 8px;font-size:11px;display:inline-flex;align-items:center;gap:4px}
+.excl-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.notice{font-size:12px;color:var(--text2);background:var(--bg2);border-radius:var(--radius);padding:8px 12px;margin-top:.75rem}
+.notice-warning{font-size:12px;color:var(--warning-text);background:var(--warning-bg);border-radius:var(--radius);padding:8px 12px;margin-top:.5rem}
+.empty{text-align:center;padding:1.5rem;color:var(--text2);font-size:13px}
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--text);color:var(--bg);padding:10px 16px;border-radius:var(--radius);font-size:13px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;max-width:300px}
+.toast.show{opacity:1}
+.credits-table{width:100%;border-collapse:collapse;font-size:12px}
+.credits-table th{text-align:left;padding:6px 8px;border-bottom:.5px solid var(--border2);color:var(--text2);font-weight:500;font-size:11px;white-space:nowrap}
+.credits-table td{padding:6px 8px;border-bottom:.5px solid var(--border);vertical-align:middle}
+.credits-table tr:last-child td{border-bottom:none}
+.credits-table tr:hover td{background:var(--bg2)}
+.pmt-status{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:var(--radius);font-size:11px;font-weight:500;cursor:pointer}
+.pmt-paid{background:var(--success-bg);color:var(--success-text)}
+.pmt-pending{background:var(--warning-bg);color:var(--warning-text)}
+.pmt-overdue{background:var(--danger-bg);color:var(--danger-text)}
+.loading{display:flex;align-items:center;justify-content:center;padding:3rem;gap:8px;color:var(--text2);font-size:13px}
+.spinner{width:18px;height:18px;border:2px solid var(--border2);border-top-color:var(--text);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.url-chip{background:var(--info-bg);color:var(--info-text);border-radius:var(--radius);padding:3px 8px;font-size:11px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.confirmed-banner{background:#d4edda;color:#155724;border-radius:var(--radius);padding:6px 10px;font-size:12px;margin-top:6px;display:flex;align-items:center;gap:6px}
+.not-confirmed-banner{background:var(--warning-bg);color:var(--warning-text);border-radius:var(--radius);padding:6px 10px;font-size:12px;margin-top:6px;display:flex;align-items:center;gap:6px}
+/* Login screen */
+.login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:1rem}
+.login-screen h2{font-size:18px;font-weight:500}
+.login-form{display:flex;flex-direction:column;gap:10px;width:100%;max-width:300px}
+.login-form input{width:100%}
+.login-error{font-size:12px;color:var(--danger-text);text-align:center}
+.admin-bar{display:flex;align-items:center;justify-content:space-between;background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius);padding:8px 14px;margin-bottom:1rem;font-size:13px}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1><i class="ti ti-plant-2"></i> Ateliers céramique</h1>
+  <p class="subtitle">Réservation des créneaux</p>
 
-    // Tout le monde peut lire
-    match /{document=**} {
-      allow read: if true;
-    }
+  <div class="tabs" id="mainTabs">
+    <button class="tab active" onclick="showTab('student')"><i class="ti ti-user"></i> Élève</button>
+    <button class="tab" onclick="showTab('admin')"><i class="ti ti-settings"></i> Administrateur</button>
+  </div>
 
-    // Élèves : seul l'admin connecté peut modifier
-    match /students/{id} {
-      allow write: if request.auth != null && request.auth.token.email == "virginie.ternois@gmail.com";
-    }
+  <!-- TAB STUDENT -->
+  <div id="tab-student">
+    <div id="studentPickerBlock" class="card" style="padding:.75rem 1.25rem;margin-bottom:1rem">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:6px">Je suis :</div>
+      <select id="studentSelect" onchange="onStudentChange()" style="width:100%">
+        <option value="">-- Choisir mon nom --</option>
+      </select>
+      <div id="creditDisplay" style="margin-top:8px;display:none">
+        <span style="font-size:13px;color:var(--text2)">Mes crédits : </span>
+        <span id="creditCount" class="credit-badge">0</span>
+        <span style="font-size:12px;color:var(--text2);margin-left:6px">séance(s) disponible(s)</span>
+      </div>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#e1f5ee;border:.5px solid #9fe1cb"></div> Disponible</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#e6f1fb;border:.5px solid #b5d4f4"></div> Réservé</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#faeeda;border:.5px solid #fac775"></div> Annulation demandée</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#fcebeb;border:.5px solid #f7c1c1"></div> Complet</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#d4edda;border:.5px solid #9fcfab"></div> Cours confirmé</div>
+    </div>
+    <div id="studentCalendar"><div class="loading"><div class="spinner"></div> Chargement...</div></div>
+    <div class="notice" style="margin-top:1rem"><i class="ti ti-info-circle"></i> Pour toute question, contactez votre professeur.</div>
+  </div>
 
-    // Slots et settings : seul l'admin
-    match /slots/{id} {
-      allow write: if request.auth != null && request.auth.token.email == "virginie.ternois@gmail.com";
-    }
-    match /settings/{id} {
-      allow write: if request.auth != null && request.auth.token.email == "virginie.ternois@gmail.com";
-    }
-    match /creditPurchases/{id} {
-      allow write: if request.auth != null && request.auth.token.email == "virginie.ternois@gmail.com";
-    }
+  <!-- TAB ADMIN -->
+  <div id="tab-admin" style="display:none">
 
-    // Réservations et annulations : tout le monde peut créer, seul l'admin peut modifier/supprimer
-    match /bookings/{id} {
-      allow create: if true;
-      allow update, delete: if request.auth != null && request.auth.token.email == "virginie.ternois@gmail.com";
-    }
-    match /cancelRequests/{id} {
-      allow create: if true;
-      allow update, delete: if request.auth != null && request.auth.token.email == "virginie.ternois@gmail.com";
-    }
+    <!-- LOGIN SCREEN -->
+    <div id="adminLogin" class="login-screen">
+      <i class="ti ti-lock" style="font-size:36px;color:var(--text2)"></i>
+      <h2>Connexion administrateur</h2>
+      <div class="login-form">
+        <input type="email" id="loginEmail" placeholder="Email" value="virginie.ternois@gmail.com">
+        <input type="password" id="loginPassword" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')doLogin()">
+        <button class="btn btn-primary" onclick="doLogin()"><i class="ti ti-login"></i> Se connecter</button>
+        <div id="loginError" class="login-error" style="display:none"></div>
+        <div id="loginSpinner" style="display:none;text-align:center"><div class="spinner" style="margin:auto"></div></div>
+      </div>
+    </div>
+
+    <!-- ADMIN CONTENT (visible once logged in) -->
+    <div id="adminContent" style="display:none">
+      <div class="admin-bar">
+        <span style="color:var(--text2);font-size:12px"><i class="ti ti-shield-check" style="color:var(--success-text)"></i> Connectée en tant qu'admin</span>
+        <button class="btn btn-sm btn-danger" onclick="doLogout()"><i class="ti ti-logout"></i> Déconnexion</button>
+      </div>
+
+      <div class="tabs" style="margin-bottom:1rem">
+        <button class="tab active" onclick="showAdminTab('planning')" id="atab-planning">Planning</button>
+        <button class="tab" onclick="showAdminTab('students')" id="atab-students">Élèves</button>
+        <button class="tab" onclick="showAdminTab('credits')" id="atab-credits">Crédits & paiements</button>
+      </div>
+
+      <!-- PLANNING -->
+      <div id="adminTab-planning">
+        <div class="toolbar">
+          <div class="field"><label>Début trimestre</label><input type="date" id="trimStart" value="2025-09-01"></div>
+          <div class="field"><label>Fin trimestre</label><input type="date" id="trimEnd" value="2025-12-20"></div>
+          <div class="field"><label>Places max</label><input type="number" id="maxPlaces" value="8" min="1" max="30" style="width:72px"></div>
+          <div class="field"><label>&nbsp;</label><button class="btn btn-primary" onclick="generateSlots()"><i class="ti ti-refresh"></i> Générer</button></div>
+          <div class="field"><label>&nbsp;</label><button class="btn" onclick="updateAllMaxPlaces()"><i class="ti ti-adjustments"></i> Màj places</button></div>
+        </div>
+        <div style="margin-bottom:1rem">
+          <div class="section-title">Dates exclues</div>
+          <div id="exclusionList" class="excl-tags"></div>
+          <div class="inline-form">
+            <input type="date" id="newExclusion">
+            <button class="btn btn-sm" onclick="addExclusion()"><i class="ti ti-plus"></i> Ajouter</button>
+          </div>
+        </div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#e1f5ee"></div> Ouvert</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#fcebeb"></div> Complet</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#f1efe8"></div> Fermé</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#d4edda"></div> Confirmé</div>
+        </div>
+        <div id="adminCalendar"></div>
+        <div style="margin-top:1.5rem">
+          <span class="section-title">Demandes d'annulation en attente</span>
+          <div class="card" style="padding:.5rem 1.25rem"><div id="cancelPendingList"></div></div>
+        </div>
+      </div>
+
+      <!-- STUDENTS -->
+      <div id="adminTab-students" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+          <span class="section-title">Élèves & crédits</span>
+          <button class="btn btn-sm btn-primary" onclick="showAddStudent()"><i class="ti ti-plus"></i> Ajouter</button>
+        </div>
+        <div id="addStudentForm" style="display:none;margin-bottom:.75rem">
+          <div class="card">
+            <div class="inline-form">
+              <input type="text" id="newStudentName" placeholder="Prénom Nom" style="flex:1;min-width:140px">
+              <input type="number" id="newStudentCredits" value="10" style="width:80px">
+              <button class="btn btn-primary btn-sm" onclick="addStudent()">Enregistrer</button>
+              <button class="btn btn-sm" onclick="document.getElementById('addStudentForm').style.display='none'">Annuler</button>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="padding:.5rem 1.25rem"><div id="studentList"></div></div>
+      </div>
+
+      <!-- CREDITS -->
+      <div id="adminTab-credits" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+          <span class="section-title">Historique des achats de crédits</span>
+          <button class="btn btn-sm btn-primary" onclick="addCreditPurchase()"><i class="ti ti-plus"></i> Nouvel achat</button>
+        </div>
+        <div class="card" style="padding:0;overflow:auto"><div id="creditsTable"></div></div>
+        <div class="notice"><i class="ti ti-info-circle"></i> Cliquez sur un statut pour le basculer payé/en attente.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ADMIN -->
+<div id="slotModal" class="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <div id="modalTitle" class="modal-title"></div>
+      <button class="btn btn-sm" onclick="closeModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<!-- MODAL STUDENT -->
+<div id="slotModalStudent" class="modal-overlay" onclick="if(event.target===this)closeModalStudent()">
+  <div class="modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <div id="modalTitleStudent" class="modal-title"></div>
+      <button class="btn btn-sm" onclick="closeModalStudent()"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="modalContentStudent"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, getDocs, addDoc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+// ============================================================
+// CONFIG
+// ============================================================
+const ADMIN_EMAIL = "virginie.ternois@gmail.com";
+const CANCEL_HOURS_LIMIT = 48;
+const AUTO_CONFIRM_COUNT = 3;
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBL9Dx58qGd-jQ9McwhPrX0OPCi2gg645E",
+  authDomain: "ateliers-ceramique.firebaseapp.com",
+  projectId: "ateliers-ceramique",
+  storageBucket: "ateliers-ceramique.firebasestorage.app",
+  messagingSenderId: "768543381475",
+  appId: "1:768543381475:web:1d2b378eb8a8504470b2d6"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+// ============================================================
+// FIRESTORE HELPERS
+// ============================================================
+async function fsGetAll(col){const s=await getDocs(collection(db,col));return s.docs.map(d=>({id:d.id,...d.data()}));}
+async function fsGetWhere(col,field,op,val){const q=query(collection(db,col),where(field,op,val));const s=await getDocs(q);return s.docs.map(d=>({id:d.id,...d.data()}));}
+async function fsAdd(col,data){const r=await addDoc(collection(db,col),data);return{id:r.id,...data};}
+async function fsUpdate(col,id,data){await updateDoc(doc(db,col,id),data);}
+async function fsDelete(col,id){await deleteDoc(doc(db,col,id));}
+
+// ============================================================
+// STATE
+// ============================================================
+let settings={trimStart:"2025-09-01",trimEnd:"2025-12-20",maxPlaces:8,exclusions:[]};
+let slots=[],students=[],bookings=[],cancelRequests=[],creditPurchases=[];
+let isAdmin=false;
+
+// ============================================================
+// UTILS
+// ============================================================
+const MONTHS=["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+const DAYS_FR=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
+function parseDate(s){const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);}
+function toISO(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function formatFull(d){const days=["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];return`${days[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;}
+function slugify(s){return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"");}
+function showToast(msg,dur=3000){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur);}
+function hoursUntil(dateStr,timeStr){const d=parseDate(dateStr);const[h,m]=(timeStr||'').replace('h',':').split(':').map(Number);d.setHours(h||0,m||0,0,0);return(d-new Date())/3600000;}
+function getSelectedStudentId(){return document.getElementById('studentSelect').value||null;}
+
+// ============================================================
+// AUTH
+// ============================================================
+onAuthStateChanged(auth, user => {
+  if(user && user.email===ADMIN_EMAIL){
+    isAdmin=true;
+    document.getElementById('adminLogin').style.display='none';
+    document.getElementById('adminContent').style.display='block';
+    renderAdmin();
+  } else {
+    isAdmin=false;
+    document.getElementById('adminLogin').style.display='flex';
+    document.getElementById('adminContent').style.display='none';
+  }
+});
+
+window.doLogin=async function(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const password=document.getElementById('loginPassword').value;
+  const errEl=document.getElementById('loginError');
+  const spinEl=document.getElementById('loginSpinner');
+  errEl.style.display='none';
+  spinEl.style.display='block';
+  try{
+    await signInWithEmailAndPassword(auth,email,password);
+    spinEl.style.display='none';
+  }catch(e){
+    spinEl.style.display='none';
+    errEl.textContent=e.code==='auth/wrong-password'||e.code==='auth/user-not-found'||e.code==='auth/invalid-credential'?'Email ou mot de passe incorrect.':'Erreur de connexion. Réessayez.';
+    errEl.style.display='block';
+  }
+};
+
+window.doLogout=async function(){
+  await signOut(auth);
+  showToast("Déconnectée");
+};
+
+// ============================================================
+// INIT
+// ============================================================
+async function init(){
+  try{
+    await loadAll();
+    populateStudentSelect();
+    checkUrlParam();
+    renderStudentCalendar();
+  }catch(e){
+    console.error(e);
+    document.getElementById('studentCalendar').innerHTML='<div class="empty">Erreur de connexion. Vérifiez votre connexion internet.</div>';
   }
 }
+
+async function loadAll(){
+  const[s,sl,st,bk,cr,cp]=await Promise.all([
+    fsGetAll("settings"),
+    fsGetAll("slots"),
+    fsGetAll("students"),
+    fsGetAll("bookings"),
+    fsGetWhere("cancelRequests","status","==","pending"),
+    fsGetAll("creditPurchases"),
+  ]);
+  if(s&&s.length){const{id,...rest}=s[0];settings={...settings,...rest};settings.id=s[0].id;}
+  slots=sl||[];
+  students=(st||[]).sort((a,b)=>a.name.localeCompare(b.name));
+  bookings=bk||[];
+  cancelRequests=cr||[];
+  creditPurchases=cp||[];
+}
+
+// ============================================================
+// URL PARAM
+// ============================================================
+function checkUrlParam(){
+  const params=new URLSearchParams(window.location.search);
+  const eleve=params.get('eleve');
+  if(!eleve)return;
+  const st=students.find(s=>slugify(s.name)===eleve.toLowerCase());
+  if(st){
+    document.getElementById('studentSelect').value=st.id;
+    document.getElementById('studentPickerBlock').style.display='none';
+    onStudentChange();
+  }
+}
+
+// ============================================================
+// TABS
+// ============================================================
+window.showTab=function(t){
+  document.getElementById('tab-student').style.display=t==='student'?'block':'none';
+  document.getElementById('tab-admin').style.display=t==='admin'?'block':'none';
+  document.querySelectorAll('#mainTabs .tab').forEach((el,i)=>el.classList.toggle('active',(i===0&&t==='student')||(i===1&&t==='admin')));
+  if(t==='student')renderStudentCalendar();
+};
+
+window.showAdminTab=function(t){
+  ['planning','students','credits'].forEach(x=>{
+    document.getElementById('adminTab-'+x).style.display=x===t?'block':'none';
+    document.getElementById('atab-'+x).classList.toggle('active',x===t);
+  });
+  if(t==='credits')renderCreditsTable();
+};
+
+// ============================================================
+// SETTINGS
+// ============================================================
+async function saveSettings(){
+  const tsEl=document.getElementById('trimStart');
+  const teEl=document.getElementById('trimEnd');
+  const mpEl=document.getElementById('maxPlaces');
+  if(tsEl)settings.trimStart=tsEl.value;
+  if(teEl)settings.trimEnd=teEl.value;
+  if(mpEl)settings.maxPlaces=parseInt(mpEl.value)||8;
+  const data={trimStart:settings.trimStart,trimEnd:settings.trimEnd,maxPlaces:settings.maxPlaces,exclusions:settings.exclusions||[]};
+  if(settings.id){await fsUpdate("settings",settings.id,data);}
+  else{const r=await fsAdd("settings",data);settings.id=r.id;}
+}
+
+window.generateSlots=async function(){
+  await saveSettings();
+  const start=parseDate(settings.trimStart),end=parseDate(settings.trimEnd);
+  const excl=new Set(settings.exclusions||[]);
+  const existingDates=new Set(slots.map(s=>s.date));
+  let d=new Date(start),count=0;
+  while(d<=end){
+    const dow=d.getDay(),iso=toISO(d);
+    if((dow===5||dow===6)&&!excl.has(iso)&&!existingDates.has(iso)){
+      const time=dow===5?'18h00':'10h00';
+      const label=dow===5?'Vendredi 18h':'Samedi 10h';
+      const r=await fsAdd("slots",{date:iso,label,time,maxPlaces:settings.maxPlaces,closed:false,confirmed:false});
+      slots.push(r);count++;
+    }
+    d.setDate(d.getDate()+1);
+  }
+  slots.sort((a,b)=>a.date.localeCompare(b.date));
+  renderAdmin();renderStudentCalendar();
+  showToast(count+' créneau(x) généré(s)');
+};
+
+window.updateAllMaxPlaces=async function(){
+  const max=parseInt(document.getElementById('maxPlaces').value)||8;
+  if(!confirm('Mettre à jour le nombre de places à '+max+' sur TOUS les créneaux ?'))return;
+  for(const slot of slots){await fsUpdate("slots",slot.id,{maxPlaces:max});slot.maxPlaces=max;}
+  renderAdmin();renderStudentCalendar();
+  showToast('Places mises à jour');
+};
+
+// ============================================================
+// EXCLUSIONS
+// ============================================================
+function renderExclusions(){
+  document.getElementById('exclusionList').innerHTML=(settings.exclusions||[]).map(e=>{
+    const d=parseDate(e);
+    return`<span class="excl-tag">${d.getDate()} ${MONTHS[d.getMonth()].slice(0,3)} <span style="cursor:pointer;font-weight:700" onclick="removeExclusion('${e}')">×</span></span>`;
+  }).join('');
+}
+window.removeExclusion=async function(e){
+  settings.exclusions=(settings.exclusions||[]).filter(x=>x!==e);
+  await saveSettings();renderExclusions();
+  showToast("Date réintégrée — cliquez Générer pour recréer le créneau");
+};
+window.addExclusion=async function(){
+  const v=document.getElementById('newExclusion').value;
+  if(!v||(settings.exclusions||[]).includes(v))return;
+  settings.exclusions=[...(settings.exclusions||[]),v];
+  await saveSettings();
+  const existing=slots.find(s=>s.date===v);
+  if(existing){await fsDelete("slots",existing.id);slots=slots.filter(s=>s.date!==v);}
+  renderExclusions();renderAdmin();renderStudentCalendar();
+  showToast("Date exclue");
+};
+
+// ============================================================
+// CALENDAR
+// ============================================================
+function buildCalendar(containerId,clickFn,studentId){
+  const el=document.getElementById(containerId);if(!el)return;
+  if(!slots.length){el.innerHTML='<div class="empty">Aucun créneau. Configurez les dates et cliquez Générer.</div>';return;}
+  const slotByDate={};slots.forEach(s=>slotByDate[s.date]=s);
+  const excl=new Set(settings.exclusions||[]);
+  const start=parseDate(settings.trimStart),end=parseDate(settings.trimEnd);
+  const firstMonth=new Date(start.getFullYear(),start.getMonth(),1);
+  const lastMonth=new Date(end.getFullYear(),end.getMonth(),1);
+  let html='',cur=new Date(firstMonth);
+  while(cur<=lastMonth){
+    const y=cur.getFullYear(),m=cur.getMonth();
+    html+=`<div class="month-block"><div class="month-title">${MONTHS[m]} ${y}</div><div class="cal-grid">`;
+    DAYS_FR.forEach(d=>html+=`<div class="cal-header">${d}</div>`);
+    const startDow=(new Date(y,m,1).getDay()+6)%7;
+    for(let i=0;i<startDow;i++)html+=`<div class="cal-day empty"></div>`;
+    const daysInMonth=new Date(y,m+1,0).getDate();
+    for(let day=1;day<=daysInMonth;day++){
+      const iso=`${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      const slot=slotByDate[iso];
+      const isExcl=excl.has(iso)&&!slot;
+      let cls='cal-day';if(isExcl)cls+=' excluded';if(slot)cls+=' has-slot';
+      let inner=`<div class="day-num">${day}</div>`;
+      if(slot){
+        const slotBk=bookings.filter(b=>b.slotId===slot.id&&b.status==='confirmed');
+        const taken=slotBk.length,isFull=taken>=slot.maxPlaces;
+        const isBooked=studentId&&slotBk.some(b=>b.studentId===studentId);
+        const hasCancelReq=studentId&&cancelRequests.some(r=>r.slotId===slot.id&&r.studentId===studentId&&r.status==='pending');
+        let chipCls=slot.closed?'chip-closed':slot.confirmed?'chip-confirmed':isBooked&&hasCancelReq?'chip-pending-cancel':isBooked?'chip-booked':isFull?'chip-full':'chip-open';
+        const lbl=slot.label.split(' ')[1];
+        inner+=`<span class="slot-chip ${chipCls}">${lbl}<br>${taken}/${slot.maxPlaces}${slot.confirmed?' ✓':''}</span>`;
+      }
+      const onclick=slot?`onclick="${clickFn}('${slot.id}')"`:'';
+      html+=`<div class="${cls}" ${onclick}>${inner}</div>`;
+    }
+    html+=`</div></div>`;cur.setMonth(cur.getMonth()+1);
+  }
+  el.innerHTML=html;
+}
+
+// ============================================================
+// ADMIN MODAL
+// ============================================================
+window.openAdminModal=async function(slotId){
+  const slot=slots.find(x=>x.id===slotId);if(!slot)return;
+  const d=parseDate(slot.date);
+  document.getElementById('modalTitle').textContent=formatFull(d)+' · '+slot.time;
+  const slotBk=bookings.filter(b=>b.slotId===slotId&&b.status==='confirmed');
+  const taken=slotBk.length,isFull=taken>=slot.maxPlaces;
+  const status=slot.confirmed?'<span class="badge badge-confirmed"><i class="ti ti-check"></i> Confirmé</span>':slot.closed?'<span class="badge badge-closed">Fermé</span>':isFull?'<span class="badge badge-full">Complet</span>':'<span class="badge badge-open">Ouvert</span>';
+  const bookedNames=slotBk.map(b=>{const st=students.find(x=>x.id===b.studentId);return st?st.name:'?';});
+  const pendingCancels=cancelRequests.filter(r=>r.slotId===slotId&&r.status==='pending');
+  let html=`<div class="modal-row"><span>Statut</span>${status}</div>`;
+  html+=`<div class="modal-row"><span>Places</span><span>${taken}/${slot.maxPlaces}</span></div>`;
+  if(bookedNames.length)html+=`<div class="modal-row"><span>Inscrits</span><span style="font-size:12px;text-align:right;max-width:200px">${bookedNames.join(', ')}</span></div>`;
+  if(pendingCancels.length){
+    const names=pendingCancels.map(r=>{const st=students.find(x=>x.id===r.studentId);return st?st.name:'?';});
+    html+=`<div class="modal-row"><span style="color:var(--warning-text)">Annulations</span><span style="font-size:12px">${names.join(', ')}</span></div>`;
+  }
+  html+=`<div style="margin-top:1rem;display:flex;gap:8px;flex-wrap:wrap">`;
+  html+=`<button class="btn btn-sm" onclick="adminToggleSlot('${slotId}')">${slot.closed?'<i class="ti ti-lock-open"></i> Rouvrir':'<i class="ti ti-lock"></i> Fermer'}</button>`;
+  if(!slot.confirmed)html+=`<button class="btn btn-sm btn-success" onclick="adminConfirmSlot('${slotId}')"><i class="ti ti-check"></i> Confirmer</button>`;
+  else html+=`<button class="btn btn-sm" onclick="adminUnconfirmSlot('${slotId}')"><i class="ti ti-x"></i> Retirer confirmation</button>`;
+  if(slotBk.length){
+    html+=`<div style="margin-top:.75rem;width:100%;border-top:.5px solid var(--border);padding-top:.75rem;font-size:12px;color:var(--text2)">Annulation administrative :</div>`;
+    slotBk.forEach(b=>{
+      const st=students.find(x=>x.id===b.studentId);
+      if(st)html+=`<button class="btn btn-sm btn-danger" style="margin-top:4px" onclick="adminCancelBooking('${b.id}','${slotId}')">Annuler ${st.name}</button> `;
+    });
+  }
+  html+=`</div>`;
+  document.getElementById('modalContent').innerHTML=html;
+  document.getElementById('slotModal').classList.add('open');
+};
+window.closeModal=function(){document.getElementById('slotModal').classList.remove('open');};
+window.adminToggleSlot=async function(slotId){
+  const slot=slots.find(x=>x.id===slotId);if(!slot)return;
+  await fsUpdate("slots",slotId,{closed:!slot.closed});slot.closed=!slot.closed;
+  closeModal();renderAdmin();showToast(slot.closed?"Créneau fermé":"Créneau rouvert");
+};
+window.adminConfirmSlot=async function(slotId){
+  await fsUpdate("slots",slotId,{confirmed:true});
+  const slot=slots.find(x=>x.id===slotId);if(slot)slot.confirmed=true;
+  closeModal();renderAdmin();showToast("Cours confirmé !");
+};
+window.adminUnconfirmSlot=async function(slotId){
+  await fsUpdate("slots",slotId,{confirmed:false});
+  const slot=slots.find(x=>x.id===slotId);if(slot)slot.confirmed=false;
+  closeModal();renderAdmin();showToast("Confirmation retirée");
+};
+window.adminCancelBooking=async function(bookingId,slotId){
+  if(!confirm("Confirmer l'annulation administrative ?"))return;
+  const booking=bookings.find(b=>b.id===bookingId);if(!booking)return;
+  await fsUpdate("bookings",bookingId,{status:'cancelled'});booking.status='cancelled';
+  const st=students.find(x=>x.id===booking.studentId);
+  if(st){await fsUpdate("students",st.id,{credits:st.credits+1});st.credits++;}
+  const remaining=bookings.filter(b=>b.slotId===slotId&&b.status==='confirmed').length;
+  if(remaining<AUTO_CONFIRM_COUNT){
+    const slot=slots.find(x=>x.id===slotId);
+    if(slot&&slot.confirmed){await fsUpdate("slots",slotId,{confirmed:false});slot.confirmed=false;}
+  }
+  closeModal();renderAdmin();showToast("Annulation effectuée");
+};
+
+// ============================================================
+// CANCEL REQUESTS
+// ============================================================
+async function renderCancelPendingList(){
+  const el=document.getElementById('cancelPendingList');
+  const pending=cancelRequests.filter(r=>r.status==='pending');
+  if(!pending.length){el.innerHTML='<div class="empty">Aucune demande d\'annulation.</div>';return;}
+  el.innerHTML=pending.map(r=>{
+    const st=students.find(x=>x.id===r.studentId);
+    const slot=slots.find(x=>x.id===r.slotId);
+    if(!st||!slot)return'';
+    const d=parseDate(slot.date);
+    return`<div class="pending-row">
+      <div style="flex:1"><span style="font-weight:500">${st.name}</span> · ${d.getDate()} ${MONTHS[d.getMonth()].slice(0,3)} · ${slot.time}</div>
+      <button class="btn btn-sm btn-success" onclick="approveCancel('${r.id}')"><i class="ti ti-check"></i> Accepter</button>
+      <button class="btn btn-sm btn-danger" onclick="rejectCancel('${r.id}')"><i class="ti ti-x"></i> Refuser</button>
+    </div>`;
+  }).join('');
+}
+window.approveCancel=async function(requestId){
+  const req=cancelRequests.find(x=>x.id===requestId);if(!req)return;
+  await fsUpdate("cancelRequests",requestId,{status:'approved'});
+  await fsUpdate("bookings",req.bookingId,{status:'cancelled'});
+  req.status='approved';
+  const booking=bookings.find(b=>b.id===req.bookingId);if(booking)booking.status='cancelled';
+  const st=students.find(x=>x.id===req.studentId);
+  if(st){await fsUpdate("students",st.id,{credits:st.credits+1});st.credits++;}
+  const remaining=bookings.filter(b=>b.slotId===req.slotId&&b.status==='confirmed').length;
+  if(remaining<AUTO_CONFIRM_COUNT){
+    const slot=slots.find(x=>x.id===req.slotId);
+    if(slot&&slot.confirmed){await fsUpdate("slots",req.slotId,{confirmed:false});slot.confirmed=false;}
+  }
+  cancelRequests=cancelRequests.filter(x=>x.id!==requestId);
+  renderAdmin();showToast("Annulation acceptée, crédit restitué");
+};
+window.rejectCancel=async function(requestId){
+  await fsUpdate("cancelRequests",requestId,{status:'rejected'});
+  cancelRequests=cancelRequests.filter(x=>x.id!==requestId);
+  renderAdmin();showToast("Demande refusée");
+};
+
+// ============================================================
+// STUDENTS
+// ============================================================
+function renderStudents(){
+  const el=document.getElementById('studentList');
+  if(!students.length){el.innerHTML='<div class="empty">Aucun élève.</div>';return;}
+  el.innerHTML=students.map(st=>{
+    const initials=st.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const low=st.credits<2;
+    const url=`${window.location.origin}${window.location.pathname}?eleve=${slugify(st.name)}`;
+    return`<div class="student-row">
+      <div class="avatar">${initials}</div>
+      <div style="flex:1">
+        <div style="font-weight:500;font-size:13px">${st.name}</div>
+        <span class="url-chip" onclick="copyUrl('${url}')"><i class="ti ti-link"></i> Copier lien</span>
+      </div>
+      <span class="credit-badge${low?' low':''}">${st.credits} crédit(s)</span>
+      <input type="number" value="${st.credits}" min="0" style="width:60px;font-size:12px;padding:4px 6px" onchange="setCredits('${st.id}',this.value)">
+      <button class="btn btn-sm btn-danger" onclick="removeStudent('${st.id}')"><i class="ti ti-trash"></i></button>
+    </div>`;
+  }).join('');
+}
+window.copyUrl=function(url){navigator.clipboard.writeText(url).then(()=>showToast("Lien copié !")).catch(()=>prompt("Copiez ce lien :",url));};
+window.setCredits=async function(id,val){
+  const st=students.find(x=>x.id===id);if(!st)return;
+  const v=Math.max(0,parseInt(val)||0);
+  await fsUpdate("students",id,{credits:v});st.credits=v;renderStudents();showToast("Crédits mis à jour");
+};
+window.showAddStudent=function(){document.getElementById('addStudentForm').style.display='block';document.getElementById('newStudentName').focus();};
+window.removeStudent=async function(id){
+  if(!confirm("Supprimer cet élève ?"))return;
+  await fsDelete("students",id);
+  students=students.filter(x=>x.id!==id);bookings=bookings.filter(b=>b.studentId!==id);
+  renderStudents();populateStudentSelect();renderAdmin();showToast("Élève supprimé(e)");
+};
+window.addStudent=async function(){
+  const name=document.getElementById('newStudentName').value.trim();
+  const credits=parseInt(document.getElementById('newStudentCredits').value)||0;
+  if(!name)return;
+  const r=await fsAdd("students",{name,credits});
+  students.push(r);students.sort((a,b)=>a.name.localeCompare(b.name));
+  document.getElementById('newStudentName').value='';
+  document.getElementById('addStudentForm').style.display='none';
+  renderStudents();populateStudentSelect();showToast("Élève ajouté(e)");
+};
+
+// ============================================================
+// CREDITS TABLE
+// ============================================================
+async function renderCreditsTable(){
+  const el=document.getElementById('creditsTable');
+  if(!students.length){el.innerHTML='<div class="empty">Aucun élève.</div>';return;}
+  const maxPmt=Math.max(0,...creditPurchases.map(cp=>(cp.payments||[]).length))+1;
+  const cols=Math.max(maxPmt,3);
+  let pmtHeaders='';for(let i=1;i<=cols;i++)pmtHeaders+=`<th>Paiement ${i}</th>`;
+  let rows=students.map(st=>{
+    const purchases=creditPurchases.filter(cp=>cp.studentId===st.id);
+    if(!purchases.length)return`<tr><td style="font-weight:500">${st.name}</td><td>—</td><td colspan="${cols}">—</td><td>—</td></tr>`;
+    return purchases.map((cp,pi)=>{
+      const pmts=cp.payments||[];let pmtCells='';
+      for(let i=0;i<cols;i++){
+        const pmt=pmts[i];
+        if(pmt){
+          const isOverdue=pmt.status==='pending'&&pmt.date&&new Date(pmt.date)<new Date();
+          const cls=pmt.status==='paid'?'pmt-paid':isOverdue?'pmt-overdue':'pmt-pending';
+          const label=pmt.status==='paid'?'✓ Payé':isOverdue?'⚠ En retard':'En attente';
+          pmtCells+=`<td><span class="pmt-status ${cls}" onclick="cyclePmtStatus('${cp.id}',${i})">${label}</span>`;
+          if(pmt.date)pmtCells+=`<br><input type="date" value="${pmt.date}" style="font-size:10px;padding:2px 4px;margin-top:2px;width:110px" onchange="setPmtDate('${cp.id}',${i},this.value)">`;
+          pmtCells+=`</td>`;
+        }else{
+          pmtCells+=`<td><button class="btn btn-sm" style="font-size:10px" onclick="addPmt('${cp.id}',${i})"><i class="ti ti-plus"></i></button></td>`;
+        }
+      }
+      const remaining=cp.credits_bought-(pmts.filter(p=>p.status==='paid').length);
+      return`<tr>
+        ${pi===0?`<td style="font-weight:500;vertical-align:top" rowspan="${purchases.length}">${st.name}</td>`:''}
+        <td><input type="number" value="${cp.credits_bought||0}" min="0" style="width:60px;font-size:12px;padding:3px 5px" onchange="setCreditsBought('${cp.id}',this.value)"></td>
+        ${pmtCells}
+        <td style="font-size:11px;color:${remaining>0?'var(--danger-text)':'var(--success-text)'}">${remaining>0?remaining+' restant(s)':'✓ Soldé'}</td>
+      </tr>`;
+    }).join('');
+  }).join('');
+  el.innerHTML=`<table class="credits-table"><thead><tr><th>Élève</th><th>Crédits achetés</th>${pmtHeaders}<th>Solde</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+window.addCreditPurchase=async function(){
+  const name=prompt("Nom de l'élève :");if(!name)return;
+  const st=students.find(s=>s.name.toLowerCase()===name.toLowerCase());
+  if(!st){showToast("Élève introuvable.");return;}
+  const credits=parseInt(prompt("Nombre de crédits achetés :"))||0;
+  const r=await fsAdd("creditPurchases",{studentId:st.id,credits_bought:credits,payments:[]});
+  creditPurchases.unshift(r);
+  await fsUpdate("students",st.id,{credits:st.credits+credits});st.credits+=credits;
+  renderCreditsTable();renderStudents();showToast("Achat enregistré");
+};
+window.setCreditsBought=async function(cpId,val){
+  await fsUpdate("creditPurchases",cpId,{credits_bought:parseInt(val)||0});
+  const cp=creditPurchases.find(x=>x.id===cpId);if(cp)cp.credits_bought=parseInt(val)||0;
+  renderCreditsTable();
+};
+window.addPmt=async function(cpId,idx){
+  const cp=creditPurchases.find(x=>x.id===cpId);if(!cp)return;
+  const pmts=[...(cp.payments||[])];
+  while(pmts.length<=idx)pmts.push(null);
+  pmts[idx]={status:'pending',date:''};
+  await fsUpdate("creditPurchases",cpId,{payments:pmts});cp.payments=pmts;renderCreditsTable();
+};
+window.cyclePmtStatus=async function(cpId,idx){
+  const cp=creditPurchases.find(x=>x.id===cpId);if(!cp)return;
+  const pmts=[...(cp.payments||[])];if(!pmts[idx])return;
+  pmts[idx].status=pmts[idx].status==='pending'?'paid':'pending';
+  await fsUpdate("creditPurchases",cpId,{payments:pmts});cp.payments=pmts;renderCreditsTable();
+};
+window.setPmtDate=async function(cpId,idx,val){
+  const cp=creditPurchases.find(x=>x.id===cpId);if(!cp)return;
+  const pmts=[...(cp.payments||[])];if(!pmts[idx])return;
+  pmts[idx].date=val;
+  await fsUpdate("creditPurchases",cpId,{payments:pmts});cp.payments=pmts;renderCreditsTable();
+};
+
+// ============================================================
+// STUDENT VIEW
+// ============================================================
+function populateStudentSelect(){
+  const sel=document.getElementById('studentSelect');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">-- Choisir mon nom --</option>'+students.map(s=>`<option value="${s.id}"${s.id===cur?' selected':''}>${s.name}</option>`).join('');
+}
+window.onStudentChange=function(){
+  const studentId=getSelectedStudentId();
+  const st=students.find(x=>x.id===studentId);
+  const credDisp=document.getElementById('creditDisplay');
+  const credCount=document.getElementById('creditCount');
+  if(st){credDisp.style.display='block';credCount.textContent=st.credits;credCount.className='credit-badge'+(st.credits<2?' low':'');}
+  else{credDisp.style.display='none';}
+  renderStudentCalendar();
+};
+function renderStudentCalendar(){buildCalendar('studentCalendar','openStudentModal',getSelectedStudentId());}
+
+// ============================================================
+// STUDENT MODAL
+// ============================================================
+window.openStudentModal=async function(slotId){
+  const slot=slots.find(x=>x.id===slotId);if(!slot)return;
+  const studentId=getSelectedStudentId();
+  const st=students.find(x=>x.id===studentId);
+  const d=parseDate(slot.date);
+  document.getElementById('modalTitleStudent').textContent=formatFull(d)+' · '+slot.time;
+  const slotBk=bookings.filter(b=>b.slotId===slotId&&b.status==='confirmed');
+  const taken=slotBk.length,isFull=taken>=slot.maxPlaces;
+  const myBooking=st&&slotBk.find(b=>b.studentId===studentId);
+  const hasCancelReq=st&&cancelRequests.some(r=>r.slotId===slotId&&r.studentId===studentId&&r.status==='pending');
+  const status=slot.confirmed?'<span class="badge badge-confirmed"><i class="ti ti-check"></i> Cours confirmé</span>':slot.closed?'<span class="badge badge-closed">Fermé</span>':myBooking&&hasCancelReq?'<span class="badge badge-pending">Annulation en attente</span>':myBooking?'<span class="badge badge-booked">Vous êtes inscrit(e)</span>':isFull?'<span class="badge badge-full">Complet</span>':'<span class="badge badge-open">Disponible</span>';
+  let html=`<div class="modal-row"><span>Statut</span>${status}</div>`;
+  html+=`<div class="modal-row"><span>Inscrits</span><span>${taken}/${slot.maxPlaces}</span></div>`;
+  if(slot.confirmed){html+=`<div class="confirmed-banner"><i class="ti ti-circle-check"></i> Ce cours est confirmé !</div>`;}
+  else{html+=`<div class="not-confirmed-banner"><i class="ti ti-info-circle"></i> Ce cours sera confirmé dès 3 inscrits.</div>`;}
+  if(st){
+    if(myBooking&&!hasCancelReq){
+      const hours=hoursUntil(slot.date,slot.time);
+      if(hours<CANCEL_HOURS_LIMIT){html+=`<div class="notice-warning" style="margin-top:.75rem"><i class="ti ti-alert-triangle"></i> Ce cours est dans moins de 48h, l'annulation n'est plus possible. Contactez votre professeur.</div>`;}
+      else{html+=`<div style="margin-top:1rem"><button class="btn btn-danger" style="width:100%" onclick="requestCancel('${myBooking.id}','${slotId}')"><i class="ti ti-calendar-minus"></i> Demander l'annulation</button></div>`;}
+    }else if(myBooking&&hasCancelReq){
+      html+=`<div class="notice" style="margin-top:.75rem">Votre demande d'annulation est en attente de validation.</div>`;
+    }else if(!myBooking&&!isFull&&!slot.closed){
+      if(st.credits>0){html+=`<div style="margin-top:1rem"><button class="btn btn-primary" style="width:100%" onclick="bookSlot('${slotId}')"><i class="ti ti-calendar-plus"></i> S'inscrire à ce cours</button></div>`;}
+      else{html+=`<div class="notice-warning" style="margin-top:.75rem"><i class="ti ti-alert-triangle"></i> Vous n'avez plus de crédits. Contactez votre professeur.</div>`;}
+    }
+  }else{
+    html+=`<div class="notice" style="margin-top:.75rem">Sélectionnez votre nom pour vous inscrire.</div>`;
+  }
+  document.getElementById('modalContentStudent').innerHTML=html;
+  document.getElementById('slotModalStudent').classList.add('open');
+};
+window.closeModalStudent=function(){document.getElementById('slotModalStudent').classList.remove('open');};
+window.bookSlot=async function(slotId){
+  const studentId=getSelectedStudentId();if(!studentId)return;
+  const st=students.find(x=>x.id===studentId);if(!st||st.credits<=0)return;
+  const slot=slots.find(x=>x.id===slotId);if(!slot)return;
+  const slotBk=bookings.filter(b=>b.slotId===slotId&&b.status==='confirmed');
+  if(slotBk.length>=slot.maxPlaces){showToast("Créneau complet.");return;}
+  if(slotBk.some(b=>b.studentId===studentId)){showToast("Déjà inscrit(e).");return;}
+  const newCredits=st.credits-1;
+  await fsUpdate("students",st.id,{credits:newCredits});st.credits=newCredits;
+  const r=await fsAdd("bookings",{slotId,studentId,status:'confirmed'});
+  bookings.push(r);
+  const newCount=bookings.filter(b=>b.slotId===slotId&&b.status==='confirmed').length;
+  if(newCount>=AUTO_CONFIRM_COUNT&&!slot.confirmed){
+    await fsUpdate("slots",slotId,{confirmed:true});slot.confirmed=true;
+  }
+  onStudentChange();closeModalStudent();showToast("Inscription confirmée !");
+};
+window.requestCancel=async function(bookingId,slotId){
+  const studentId=getSelectedStudentId();if(!studentId)return;
+  const r=await fsAdd("cancelRequests",{bookingId,slotId,studentId,status:'pending'});
+  cancelRequests.push(r);closeModalStudent();renderStudentCalendar();showToast("Demande d'annulation envoyée !");
+};
+
+// ============================================================
+// RENDER ADMIN
+// ============================================================
+function renderAdmin(){
+  if(!isAdmin)return;
+  const tsEl=document.getElementById('trimStart');
+  const teEl=document.getElementById('trimEnd');
+  const mpEl=document.getElementById('maxPlaces');
+  if(tsEl)tsEl.value=settings.trimStart||'2025-09-01';
+  if(teEl)teEl.value=settings.trimEnd||'2025-12-20';
+  if(mpEl)mpEl.value=settings.maxPlaces||8;
+  renderExclusions();
+  buildCalendar('adminCalendar','openAdminModal',null);
+  renderStudents();
+  renderCancelPendingList();
+}
+
+init();
+</script>
+</body>
+</html>
