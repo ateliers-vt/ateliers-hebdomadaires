@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ateliers Céramique — Réservations</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>emailjs.init("1rA50A6hsS5rp5p5b");</script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -204,6 +206,14 @@ input:focus,select:focus{border-color:var(--text)}
 
       <!-- PLANNING -->
       <div id="adminTab-planning">
+        <div id="cancelAlertBanner" style="display:none;background:var(--amber-light);border:.5px solid #EF9F27;border-radius:var(--radius-lg);padding:12px 16px;margin-bottom:1rem;display:none;align-items:center;gap:10px">
+          <i class="ti ti-bell-ringing" style="font-size:20px;color:var(--amber-text);flex-shrink:0" aria-hidden="true"></i>
+          <div style="flex:1;font-size:13px;color:var(--amber-text)">
+            <strong>Demande(s) d'annulation en attente</strong>
+            <div id="cancelAlertDetails" style="font-size:12px;margin-top:2px"></div>
+          </div>
+          <button class="btn btn-sm btn-warning" onclick="showAdminTab('planning');document.getElementById('cancelPendingList').scrollIntoView({behavior:'smooth'})">Voir</button>
+        </div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;flex-wrap:wrap;gap:8px">
           <span class="section-title" style="margin:0">Périodes</span>
           <div style="display:flex;gap:6px">
@@ -735,7 +745,24 @@ window.adminCancelBooking=async function(bookingId,slotId){
 // ── CANCEL REQUESTS ──────────────────────────────────────────
 async function renderCancelPendingList(){
   const el=document.getElementById('cancelPendingList');
+  const banner=document.getElementById('cancelAlertBanner');
   const pending=cancelRequests.filter(r=>r.status==='pending');
+  // Update banner
+  if(banner){
+    if(pending.length){
+      const details=pending.map(r=>{
+        const st=students.find(x=>x.id===r.studentId);
+        const slot=slots.find(x=>x.id===r.slotId);
+        if(!st||!slot)return'';
+        const d=parseDate(slot.date);
+        return`${st.name} · ${d.getDate()} ${MONTHS[d.getMonth()].slice(0,3)} ${slot.time}`;
+      }).filter(Boolean).join(' — ');
+      document.getElementById('cancelAlertDetails').textContent=details;
+      banner.style.display='flex';
+    }else{
+      banner.style.display='none';
+    }
+  }
   if(!pending.length){el.innerHTML='<div class="empty">Aucune demande d\'annulation.</div>';return;}
   el.innerHTML=pending.map(r=>{
     const st=students.find(x=>x.id===r.studentId);
@@ -1212,8 +1239,27 @@ window.bookSlot=async function(slotId){
 
 window.requestCancel=async function(bookingId,slotId){
   const studentId=getSelectedStudentId();if(!studentId)return;
+  const st=students.find(x=>x.id===studentId);
+  const slot=slots.find(x=>x.id===slotId);
   const r=await fsAdd("cancelRequests",{bookingId,slotId,studentId,status:'pending'});
-  cancelRequests.push(r);closeModalStudent();renderStudentCalendar();showToast("Demande d'annulation envoyée !");
+  cancelRequests.push(r);
+  closeModalStudent();renderStudentCalendar();
+  showToast("Demande d'annulation envoyée !");
+  // Envoi email notification
+  if(st&&slot){
+    try{
+      await emailjs.send("service_sq468cl","template_rr1yq9o",{
+        to_email: ADMIN_EMAIL,
+        student_name: st.name,
+        slot_date: formatFull(parseDate(slot.date)),
+        slot_time: slot.time,
+        message: `${st.name} demande l'annulation de sa réservation du ${formatFull(parseDate(slot.date))} à ${slot.time}.`
+      });
+      console.log("Email envoyé");
+    }catch(e){
+      console.warn("Erreur envoi email:",e);
+    }
+  }
 };
 
 function renderAdmin(){
