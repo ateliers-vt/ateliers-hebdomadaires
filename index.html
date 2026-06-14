@@ -326,7 +326,12 @@ function formatDateFr(iso){if(!iso)return'';const d=parseDate(iso);return`${d.ge
 function slugify(s){return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"");}
 function showToast(msg,dur=3000){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur);}
 function hoursUntil(dateStr,timeStr){const d=parseDate(dateStr);const[h,m]=(timeStr||'').replace('h',':').split(':').map(Number);d.setHours(h||0,m||0,0,0);return(d-new Date())/3600000;}
-function getSelectedStudentId(){return document.getElementById('studentSelect').value||null;}
+let _selectedStudentId=null;
+function getSelectedStudentId(){
+  const sel=document.getElementById('studentSelect');
+  if(sel) _selectedStudentId=sel.value||null;
+  return _selectedStudentId;
+}
 function today(){return toISO(new Date());}
 function getPmtStatus(pmt){if(!pmt)return'pending';if(pmt.status==='paid')return'paid';if(pmt.date&&new Date(pmt.date+'T23:59:59')<new Date())return'overdue';return'pending';}
 
@@ -358,24 +363,31 @@ async function init(){
   try{
     await loadAll();
     populateStudentSelect();
+    if(!activePeriodId) setActivePeriod();
     checkUrlParam();
-    setActivePeriod();
     renderStudentCalendar();
   }catch(e){
-    console.error(e);
-    document.getElementById('studentCalendar').innerHTML='<div class="empty">Erreur de connexion.</div>';
+    console.error("Erreur init:",e);
+    document.getElementById('studentCalendar').innerHTML=`<div class="empty">Erreur de chargement (${e.code||e.message}). Vérifiez les règles Firestore.</div>`;
   }
 }
 
 async function loadAll(){
+  // Chargement robuste : chaque collection est tentée individuellement
+  async function safe(fn){try{return await fn();}catch(e){console.warn("Collection error:",e.code,e.message);return [];}}
   const[pe,sl,st,bk,cr,cp]=await Promise.all([
-    fsGetAll("periods"),fsGetAll("slots"),fsGetAll("students"),
-    fsGetAll("bookings"),fsGetWhere("cancelRequests","status","==","pending"),fsGetAll("creditPurchases"),
+    safe(()=>fsGetAll("periods")),
+    safe(()=>fsGetAll("slots")),
+    safe(()=>fsGetAll("students")),
+    safe(()=>fsGetAll("bookings")),
+    safe(()=>fsGetWhere("cancelRequests","status","==","pending")),
+    safe(()=>fsGetAll("creditPurchases")),
   ]);
-  periods=(pe||[]).sort((a,b)=>a.startDate.localeCompare(b.startDate));
-  slots=(sl||[]).sort((a,b)=>a.date.localeCompare(b.date));
+  periods=(pe||[]).filter(p=>!p.archived).sort((a,b)=>a.startDate.localeCompare(b.startDate));
+  slots=(sl||[]).filter(s=>!s.archived).sort((a,b)=>a.date.localeCompare(b.date));
   students=(st||[]).sort((a,b)=>a.name.localeCompare(b.name));
   bookings=bk||[];cancelRequests=cr||[];creditPurchases=cp||[];
+  setActivePeriod();
 }
 
 function setActivePeriod(){
@@ -390,9 +402,13 @@ function checkUrlParam(){
   const eleve=params.get('eleve');if(!eleve)return;
   const st=students.find(s=>slugify(s.name)===eleve.toLowerCase());
   if(st){
-    document.getElementById('studentSelect').value=st.id;
-    document.getElementById('heroBanner').querySelector('div').style.display='none';
-    onStudentChange();
+    _selectedStudentId=st.id;
+    // hide picker, show banner directly
+    document.getElementById('heroBanner').innerHTML='';
+    document.getElementById('studentPickerBlock')&&(document.getElementById('studentPickerBlock').style.display='none');
+    renderHeroBanner(st);
+    renderPaymentAlerts(st.id);
+    renderStudentCalendar();
   }
 }
 
@@ -1071,14 +1087,15 @@ function renderPaymentAlerts(studentId){
 }
 
 window.onStudentChange=function(){
-  const studentId=getSelectedStudentId();
-  const st=students.find(x=>x.id===studentId);
+  const sel=document.getElementById('studentSelect');
+  _selectedStudentId=sel?sel.value||null:null;
+  const st=students.find(x=>x.id===_selectedStudentId);
   if(st){renderHeroBanner(st);}
   else{
     document.getElementById('heroBanner').innerHTML=`<div style="background:var(--bg2);border-radius:var(--radius-lg);padding:14px;margin-bottom:10px"><div style="font-size:12px;color:var(--text2);margin-bottom:6px">Je suis :</div><select id="studentSelect" onchange="onStudentChange()" style="width:100%"><option value="">-- Choisir mon nom --</option>${students.map(s=>`<option value="${s.id}">${s.name}</option>`).join('')}</select></div>`;
   }
   document.getElementById('studentStatsRow').style.display=st?'block':'none';
-  renderPaymentAlerts(studentId);
+  renderPaymentAlerts(_selectedStudentId);
   renderStudentCalendar();
 };
 
