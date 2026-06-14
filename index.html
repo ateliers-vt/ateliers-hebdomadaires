@@ -648,6 +648,11 @@ function buildCalendarHtml(period,pSlots,excl,clickFn,studentId){
       if(slot){
         const slotBk=bookings.filter(b=>b.slotId===slot.id&&b.status==='confirmed');
         const taken=slotBk.length,isFull=taken>=slot.maxPlaces;
+        // Auto-sync confirmed status based on booking count
+        if(!slot.confirmed&&taken>=AUTO_CONFIRM_COUNT){
+          slot.confirmed=true;
+          fsUpdate("slots",slot.id,{confirmed:true}).catch(()=>{});
+        }
         const isBooked=studentId&&slotBk.some(b=>b.studentId===studentId);
         const hasCancelReq=studentId&&cancelRequests.some(r=>r.slotId===slot.id&&r.studentId===studentId&&r.status==='pending');
         let chipCls;
@@ -1188,7 +1193,16 @@ window.bookSlot=async function(slotId){
   const r=await fsAdd("bookings",{slotId,studentId,status:'confirmed'});
   bookings.push(r);
   const newCount=bookings.filter(b=>b.slotId===slotId&&b.status==='confirmed').length;
-  if(newCount>=AUTO_CONFIRM_COUNT&&!slot.confirmed){await fsUpdate("slots",slotId,{confirmed:true});slot.confirmed=true;}
+  const slotObj=slots.find(x=>x.id===slotId);
+  if(newCount>=AUTO_CONFIRM_COUNT&&slotObj&&!slotObj.confirmed){
+    await fsUpdate("slots",slotId,{confirmed:true});
+    slotObj.confirmed=true;
+  }
+  // Recharger les slots pour s'assurer que les statuts sont à jour
+  try{
+    const freshSlots=await fsGetAll("slots");
+    slots=(freshSlots||[]).filter(s=>!s.archived).sort((a,b)=>a.date.localeCompare(b.date));
+  }catch(e){console.warn("Reload slots failed",e);}
   // Refresh sans réinitialiser la vue élève
   if(st) renderHeroBanner(st);
   renderStudentCalendar();
