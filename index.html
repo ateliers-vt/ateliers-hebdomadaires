@@ -399,15 +399,17 @@ window.showTab=function(t){
   document.getElementById('tab-student').style.display=t==='student'?'block':'none';
   document.getElementById('tab-admin').style.display=t==='admin'?'block':'none';
   document.querySelectorAll('#mainTabs .tab').forEach((el,i)=>el.classList.toggle('active',(i===0&&t==='student')||(i===1&&t==='admin')));
-  if(t==='student')renderStudentCalendar();
+  if(t==='student') renderStudentCalendar();
+  if(t==='admin'&&isAdmin) renderAdmin();
 };
 window.showAdminTab=function(t){
   ['planning','students','credits'].forEach(x=>{
     document.getElementById('adminTab-'+x).style.display=x===t?'block':'none';
     document.getElementById('atab-'+x).classList.toggle('active',x===t);
   });
-  if(t==='credits')renderCreditPurchases();
-  if(t==='students')renderStudents();
+  if(t==='credits') renderCreditPurchases();
+  if(t==='students') renderStudents();
+  if(t==='planning') renderAdmin();
 };
 
 // ── PERIODS ─────────────────────────────────────────────────
@@ -800,10 +802,32 @@ window.saveStudentName=async function(id){
 };
 window.copyUrl=function(url){navigator.clipboard.writeText(url).then(()=>showToast("Lien copié !")).catch(()=>prompt("Copiez ce lien :",url));};
 window.removeStudent=async function(id){
-  if(!confirm("Supprimer cet élève ?"))return;
+  const st=students.find(x=>x.id===id);
+  if(!confirm(`Supprimer ${st?st.name:'cet élève'} ? Toutes ses réservations et données de crédits seront supprimées définitivement.`))return;
+  // Supprimer les réservations
+  const stBookings=bookings.filter(b=>b.studentId===id);
+  for(const b of stBookings){
+    await fsDelete("bookings",b.id);
+    // si le cours était confirmé, vérifier si on doit retirer la confirmation
+    const remaining=bookings.filter(bk=>bk.slotId===b.slotId&&bk.status==='confirmed'&&bk.id!==b.id).length;
+    if(remaining<AUTO_CONFIRM_COUNT){
+      const slot=slots.find(s=>s.id===b.slotId);
+      if(slot&&slot.confirmed){await fsUpdate("slots",slot.id,{confirmed:false});slot.confirmed=false;}
+    }
+  }
+  bookings=bookings.filter(b=>b.studentId!==id);
+  // Supprimer les demandes d'annulation
+  const stCancels=cancelRequests.filter(r=>r.studentId===id);
+  for(const r of stCancels) await fsDelete("cancelRequests",r.id);
+  cancelRequests=cancelRequests.filter(r=>r.studentId!==id);
+  // Supprimer les achats de crédits
+  const stPurchases=creditPurchases.filter(cp=>cp.studentId===id);
+  for(const cp of stPurchases) await fsDelete("creditPurchases",cp.id);
+  creditPurchases=creditPurchases.filter(cp=>cp.studentId!==id);
+  // Supprimer l'élève
   await fsDelete("students",id);
   students=students.filter(x=>x.id!==id);
-  renderStudents();populateStudentSelect();renderAdmin();showToast("Élève supprimé(e)");
+  renderStudents();populateStudentSelect();renderAdmin();showToast("Élève et toutes ses données supprimés");
 };
 window.showAddStudent=function(){document.getElementById('addStudentForm').style.display='block';document.getElementById('newStudentName').focus();};
 window.addStudent=async function(){
@@ -1134,6 +1158,7 @@ window.requestCancel=async function(bookingId,slotId){
 
 function renderAdmin(){
   if(!isAdmin)return;
+  if(!activePeriodId) setActivePeriod();
   renderPeriodList();
   renderActivePeriodPlanning();
   renderStudents();
