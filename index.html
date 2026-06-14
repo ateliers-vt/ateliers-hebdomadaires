@@ -1189,7 +1189,11 @@ window.bookSlot=async function(slotId){
   bookings.push(r);
   const newCount=bookings.filter(b=>b.slotId===slotId&&b.status==='confirmed').length;
   if(newCount>=AUTO_CONFIRM_COUNT&&!slot.confirmed){await fsUpdate("slots",slotId,{confirmed:true});slot.confirmed=true;}
-  onStudentChange();closeModalStudent();showToast("Inscription confirmée !");
+  // Refresh sans réinitialiser la vue élève
+  if(st) renderHeroBanner(st);
+  renderStudentCalendar();
+  closeModalStudent();
+  showToast("Inscription confirmée !");
 };
 
 window.requestCancel=async function(bookingId,slotId){
