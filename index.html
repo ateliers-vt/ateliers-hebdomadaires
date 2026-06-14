@@ -8,28 +8,24 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#ffffff;--bg2:#f5f5f3;--bg3:#eeecea;
+  --bg:#fff;--bg2:#f5f5f3;--bg3:#eeecea;
   --text:#1a1a18;--text2:#6b6b67;--text3:#9a9a96;
   --border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.22);
-  --success-bg:#e1f5ee;--success-text:#085041;
-  --danger-bg:#fcebeb;--danger-text:#791f1f;
-  --info-bg:#e6f1fb;--info-text:#0c447c;
-  --warning-bg:#faeeda;--warning-text:#633806;
+  --teal-dark:#085041;--teal-mid:#1D9E75;--teal-light:#E1F5EE;--teal-border:#9FE1CB;
+  --blue-light:#E6F1FB;--blue-text:#0C447C;--blue-border:#B5D4F4;
+  --green-dark:#27500A;--green-light:#EAF3DE;--green-border:#C0DD97;--green-text:#173404;
+  --red-light:#FCEBEB;--red-text:#791F1F;--red-border:#F7C1C1;
+  --amber-light:#FAEEDA;--amber-text:#633806;
+  --gray-light:#F1EFE8;--gray-text:#5F5E5A;
   --radius:8px;--radius-lg:12px;
 }
 @media(prefers-color-scheme:dark){:root{
   --bg:#1e1e1c;--bg2:#2a2a28;--bg3:#333330;
   --text:#e8e8e4;--text2:#9a9a96;--text3:#6b6b67;
   --border:rgba(255,255,255,0.12);--border2:rgba(255,255,255,0.22);
-  --success-bg:#085041;--success-text:#9fe1cb;
-  --danger-bg:#501313;--danger-text:#f09595;
-  --info-bg:#042c53;--info-text:#85b7eb;
-  --warning-bg:#412402;--warning-text:#fac775;
 }}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;color:var(--text);background:var(--bg3);min-height:100vh}
 .container{max-width:820px;margin:0 auto;padding:1.5rem 1rem 3rem}
-h1{font-size:20px;font-weight:500;margin-bottom:.25rem}
-.subtitle{font-size:13px;color:var(--text2);margin-bottom:1.5rem}
 .tabs{display:flex;gap:8px;margin-bottom:1.5rem;flex-wrap:wrap}
 .tab{padding:8px 16px;border:.5px solid var(--border2);border-radius:var(--radius);background:transparent;cursor:pointer;font-size:13px;color:var(--text2);font-family:inherit;transition:all .15s}
 .tab.active{background:var(--bg);color:var(--text);font-weight:500}
@@ -41,13 +37,13 @@ h1{font-size:20px;font-weight:500;margin-bottom:.25rem}
 .btn-primary{background:var(--text);color:var(--bg);border-color:var(--text)}
 .btn-primary:hover{opacity:.85}
 .btn-sm{padding:4px 10px;font-size:11px}
-.btn-danger{color:var(--danger-text);border-color:var(--danger-text)}
-.btn-danger:hover{background:var(--danger-bg)}
-.btn-success{color:var(--success-text);border-color:var(--success-text)}
-.btn-success:hover{background:var(--success-bg)}
-.btn-warning{color:var(--warning-text);border-color:var(--warning-text)}
-input,select{padding:7px 10px;border:.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit;outline:none;width:100%}
-input[type=number],input[type=date]{width:auto}
+.btn-danger{color:var(--red-text);border-color:var(--red-border)}
+.btn-danger:hover{background:var(--red-light)}
+.btn-success{color:var(--teal-dark);border-color:var(--teal-border)}
+.btn-success:hover{background:var(--teal-light)}
+.btn-warning{color:#854F0B;border-color:#EF9F27}
+.btn-warning:hover{background:var(--amber-light)}
+input,select{padding:7px 10px;border:.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit;outline:none}
 input:focus,select:focus{border-color:var(--text)}
 .toolbar{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:1rem}
 .field label{font-size:11px;color:var(--text2);display:block;margin-bottom:4px}
@@ -66,85 +62,94 @@ input:focus,select:focus{border-color:var(--text)}
 .cal-day.has-slot:hover{border-color:var(--border2);background:var(--bg2)}
 .day-num{font-size:10px;color:var(--text2);margin-bottom:2px}
 .slot-chip{border-radius:5px;padding:2px 4px;font-size:9px;font-weight:500;line-height:1.3;margin-top:2px;display:block}
-.chip-open{background:#e1f5ee;color:#085041}
-.chip-full{background:#fcebeb;color:#791f1f}
-.chip-closed{background:#f1efe8;color:#5f5e5a}
-.chip-booked{background:#e6f1fb;color:#0c447c}
-.chip-pending-cancel{background:#faeeda;color:#633806}
-.chip-confirmed{background:#d4edda;color:#155724}
+.chip-available{background:var(--blue-light);color:var(--blue-text)}
+.chip-booked{background:var(--teal-light);color:var(--teal-dark)}
+.chip-confirmed{background:var(--green-dark);color:var(--green-border)}
+.chip-closed{background:var(--gray-light);color:var(--gray-text)}
+.chip-full{background:var(--gray-light);color:var(--gray-text)}
+.chip-cancel{background:var(--amber-light);color:var(--amber-text)}
 .badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:2px 8px;border-radius:var(--radius);font-weight:500}
-.badge-open{background:var(--success-bg);color:var(--success-text)}
-.badge-full{background:var(--danger-bg);color:var(--danger-text)}
-.badge-closed{background:var(--bg2);color:var(--text2)}
-.badge-booked{background:var(--info-bg);color:var(--info-text)}
-.badge-pending{background:var(--warning-bg);color:var(--warning-text)}
-.badge-confirmed{background:#d4edda;color:#155724}
+.badge-available{background:var(--blue-light);color:var(--blue-text)}
+.badge-booked{background:var(--teal-light);color:var(--teal-dark)}
+.badge-confirmed{background:var(--green-dark);color:var(--green-border)}
+.badge-closed{background:var(--gray-light);color:var(--gray-text)}
+.badge-full{background:var(--gray-light);color:var(--gray-text)}
+.badge-pending{background:var(--amber-light);color:var(--amber-text)}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;align-items:center;justify-content:center;padding:1rem}
 .modal-overlay.open{display:flex}
-.modal-box{background:var(--bg);border:.5px solid var(--border2);border-radius:var(--radius-lg);padding:1.25rem;width:100%;max-width:480px;max-height:92vh;overflow-y:auto}
+.modal-box{background:var(--bg);border:.5px solid var(--border2);border-radius:var(--radius-lg);padding:1.25rem;width:100%;max-width:460px;max-height:92vh;overflow-y:auto}
 .modal-title{font-size:15px;font-weight:500}
 .modal-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:.5px solid var(--border);font-size:13px}
 .modal-row:last-of-type{border-bottom:none}
 .student-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:.5px solid var(--border)}
 .student-row:last-child{border-bottom:none}
-.avatar{width:32px;height:32px;border-radius:50%;background:var(--info-bg);color:var(--info-text);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0}
-.credit-badge{background:var(--warning-bg);color:var(--warning-text);border-radius:var(--radius);padding:2px 8px;font-size:12px;font-weight:500}
-.credit-badge.low{background:var(--danger-bg);color:var(--danger-text)}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--blue-light);color:var(--blue-text);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0}
 .pending-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:.5px solid var(--border);font-size:13px;flex-wrap:wrap}
 .pending-row:last-child{border-bottom:none}
-.excl-tag{background:var(--danger-bg);color:var(--danger-text);border-radius:var(--radius);padding:3px 8px;font-size:11px;display:inline-flex;align-items:center;gap:4px}
+.excl-tag{background:var(--red-light);color:var(--red-text);border-radius:var(--radius);padding:3px 8px;font-size:11px;display:inline-flex;align-items:center;gap:4px}
 .excl-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
 .notice{font-size:12px;color:var(--text2);background:var(--bg2);border-radius:var(--radius);padding:8px 12px;margin-top:.75rem}
-.notice-warning{font-size:12px;color:var(--warning-text);background:var(--warning-bg);border-radius:var(--radius);padding:8px 12px;margin-top:.5rem}
-.notice-danger{font-size:12px;color:var(--danger-text);background:var(--danger-bg);border-radius:var(--radius);padding:8px 12px;margin-top:.5rem}
+.notice-warning{font-size:12px;color:var(--amber-text);background:var(--amber-light);border-radius:var(--radius);padding:8px 12px;margin-top:.5rem}
+.notice-danger{font-size:12px;color:var(--red-text);background:var(--red-light);border-radius:var(--radius);padding:8px 12px;margin-top:.5rem}
 .empty{text-align:center;padding:1.5rem;color:var(--text2);font-size:13px}
 .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--text);color:var(--bg);padding:10px 16px;border-radius:var(--radius);font-size:13px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;max-width:300px}
 .toast.show{opacity:1}
 .loading{display:flex;align-items:center;justify-content:center;padding:3rem;gap:8px;color:var(--text2);font-size:13px}
 .spinner{width:18px;height:18px;border:2px solid var(--border2);border-top-color:var(--text);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.url-chip{background:var(--info-bg);color:var(--info-text);border-radius:var(--radius);padding:3px 8px;font-size:11px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
-.confirmed-banner{background:#d4edda;color:#155724;border-radius:var(--radius);padding:6px 10px;font-size:12px;margin-top:6px;display:flex;align-items:center;gap:6px}
-.not-confirmed-banner{background:var(--warning-bg);color:var(--warning-text);border-radius:var(--radius);padding:6px 10px;font-size:12px;margin-top:6px;display:flex;align-items:center;gap:6px}
+.url-chip{background:var(--blue-light);color:var(--blue-text);border-radius:var(--radius);padding:3px 8px;font-size:11px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.not-confirmed-banner{background:var(--amber-light);color:var(--amber-text);border-radius:var(--radius);padding:6px 10px;font-size:12px;margin-top:6px;display:flex;align-items:center;gap:6px}
+.confirmed-banner{background:var(--green-light);color:var(--green-dark);border-radius:var(--radius);padding:6px 10px;font-size:12px;margin-top:6px;display:flex;align-items:center;gap:6px}
 .login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:1rem}
-.login-screen h2{font-size:18px;font-weight:500}
 .login-form{display:flex;flex-direction:column;gap:10px;width:100%;max-width:300px}
-.login-error{font-size:12px;color:var(--danger-text);text-align:center}
+.login-error{font-size:12px;color:var(--red-text);text-align:center}
 .admin-bar{display:flex;align-items:center;justify-content:space-between;background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius);padding:8px 14px;margin-bottom:1rem;font-size:13px}
-/* CREDITS */
+/* HERO BANNER */
+.hero-banner{background:var(--teal-dark);border-radius:var(--radius-lg);padding:18px;margin-bottom:12px}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.hero-greeting{font-size:11px;color:var(--teal-border);margin-bottom:3px}
+.hero-name{font-size:20px;font-weight:500;color:var(--teal-light)}
+.hero-credits-val{font-size:28px;font-weight:500;color:#9FE1CB}
+.hero-credits-lbl{font-size:10px;color:#5DCAA5;text-align:right}
+.next-session{background:rgba(255,255,255,0.09);border-radius:var(--radius);padding:10px 14px}
+.next-session-lbl{font-size:10px;color:#5DCAA5;text-transform:uppercase;letter-spacing:.05em;font-weight:500;margin-bottom:4px}
+.next-session-date{font-size:13px;font-weight:500;color:var(--teal-light)}
+.next-session-status{font-size:11px;color:#9FE1CB;margin-top:3px}
+/* STATS ROW */
+.stats-row{display:flex;gap:6px;margin-bottom:10px}
+.stat-box{background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius);padding:8px 10px;flex:1;text-align:center}
+.stat-val{font-size:18px;font-weight:500;display:block}
+.stat-lbl{font-size:10px;color:var(--text2)}
+/* PAYMENT ALERT */
+.payment-alert{border-radius:var(--radius-lg);padding:12px 16px;margin-bottom:10px;display:flex;align-items:flex-start;gap:10px;font-size:12px;background:var(--red-light);color:var(--red-text);border:.5px solid var(--red-border)}
+/* PURCHASE CARD */
 .purchase-card{background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:1rem}
-.purchase-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:8px}
-.purchase-ref{font-weight:500;font-size:13px}
-.purchase-meta{font-size:11px;color:var(--text2)}
-.purchase-stats{display:flex;gap:12px;margin-bottom:.75rem;flex-wrap:wrap}
-.stat-box{background:var(--bg2);border-radius:var(--radius);padding:6px 12px;font-size:12px;text-align:center}
-.stat-box .val{font-size:16px;font-weight:500;display:block}
-.stat-box .lbl{font-size:10px;color:var(--text2)}
-.echeance-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:.5px solid var(--border);flex-wrap:wrap}
-.echeance-row:last-child{border-bottom:none}
-.pmt-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:var(--radius);font-size:11px;font-weight:500;cursor:pointer;border:.5px solid transparent;transition:opacity .15s}
-.pmt-badge:hover{opacity:.8}
-.pmt-paid{background:var(--success-bg);color:var(--success-text)}
-.pmt-pending{background:var(--warning-bg);color:var(--warning-text)}
-.pmt-overdue{background:var(--danger-bg);color:var(--danger-text)}
-.pmt-upcoming{background:var(--info-bg);color:var(--info-text)}
-.student-recap{background:var(--bg2);border-radius:var(--radius);padding:10px 14px;margin-bottom:.75rem;display:flex;gap:16px;flex-wrap:wrap;align-items:center}
-.recap-item{font-size:12px;color:var(--text2)}
-.recap-item strong{color:var(--text);font-size:14px}
-/* PAYMENT ALERT BANNER */
-.payment-alert{border-radius:var(--radius-lg);padding:12px 16px;margin-bottom:1rem;display:flex;align-items:flex-start;gap:10px;font-size:13px}
-.payment-alert.overdue{background:var(--danger-bg);color:var(--danger-text);border:.5px solid #f7c1c1}
-.payment-alert.upcoming{background:var(--warning-bg);color:var(--warning-text);border:.5px solid #fac775}
-.payment-alert i{font-size:18px;flex-shrink:0;margin-top:1px}
-/* EDIT STUDENT FORM */
-.edit-form{background:var(--bg2);border-radius:var(--radius);padding:10px;margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.purchase-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:8px}
+.ech-row{display:flex;align-items:center;gap:6px;padding:7px 0;border-bottom:.5px solid var(--border);flex-wrap:wrap}
+.ech-row:last-child{border-bottom:none}
+.pmt-badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:var(--radius);font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap;min-width:90px;justify-content:center}
+.pmt-paid{background:var(--teal-light);color:var(--teal-dark)}
+.pmt-pending{background:var(--amber-light);color:var(--amber-text)}
+.pmt-overdue{background:var(--red-light);color:var(--red-text)}
+.student-stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:.75rem}
+.sstats-box{background:var(--bg2);border-radius:var(--radius);padding:6px 10px;text-align:center;flex:1;min-width:70px}
+.sstats-val{font-size:15px;font-weight:500;display:block}
+.sstats-lbl{font-size:10px;color:var(--text2)}
+/* PERIOD CARD */
+.period-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:.5px solid var(--border);font-size:13px}
+.period-row:last-child{border-bottom:none}
+.period-badge{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500}
+.period-active{background:var(--teal-light);color:var(--teal-dark)}
+.period-past{background:var(--gray-light);color:var(--gray-text)}
+.period-future{background:var(--blue-light);color:var(--blue-text)}
+/* CONFIRM INPUT */
+.confirm-input-box{border:.5px solid var(--red-border);border-radius:var(--radius);padding:8px 12px;width:100%;font-size:13px;font-family:inherit;background:var(--bg);color:var(--text);outline:none;margin-bottom:10px}
+.nb-btn{width:32px;height:32px;border-radius:6px;border:.5px solid var(--border2);background:transparent;display:inline-flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;font-family:inherit}
+.nb-btn.selected{background:var(--text);color:var(--bg);border-color:var(--text)}
 </style>
 </head>
 <body>
 <div class="container">
-  <h1><i class="ti ti-plant-2"></i> Ateliers céramique</h1>
-  <p class="subtitle">Réservation des créneaux</p>
-
   <div class="tabs" id="mainTabs">
     <button class="tab active" onclick="showTab('student')"><i class="ti ti-user"></i> Élève</button>
     <button class="tab" onclick="showTab('admin')"><i class="ti ti-settings"></i> Administrateur</button>
@@ -153,22 +158,20 @@ input:focus,select:focus{border-color:var(--text)}
   <!-- TAB STUDENT -->
   <div id="tab-student">
     <div id="paymentAlertZone"></div>
-    <div id="studentPickerBlock" class="card" style="padding:.75rem 1.25rem;margin-bottom:1rem">
-      <div style="font-size:12px;color:var(--text2);margin-bottom:6px">Je suis :</div>
-      <select id="studentSelect" onchange="onStudentChange()" style="width:100%">
-        <option value="">-- Choisir mon nom --</option>
-      </select>
-      <div id="creditDisplay" style="margin-top:8px;display:none">
-        <span style="font-size:13px;color:var(--text2)">Mes crédits disponibles : </span>
-        <span id="creditCount" class="credit-badge">0</span>
+    <div id="heroBanner">
+      <div style="background:var(--bg2);border-radius:var(--radius-lg);padding:14px;margin-bottom:10px">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:6px">Je suis :</div>
+        <select id="studentSelect" onchange="onStudentChange()" style="width:100%">
+          <option value="">-- Choisir mon nom --</option>
+        </select>
       </div>
     </div>
+    <div id="studentStatsRow" style="display:none"></div>
     <div class="legend">
-      <div class="legend-item"><div class="legend-dot" style="background:#e1f5ee;border:.5px solid #9fe1cb"></div> Disponible</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#e6f1fb;border:.5px solid #b5d4f4"></div> Réservé</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#faeeda;border:.5px solid #fac775"></div> Annulation demandée</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#fcebeb;border:.5px solid #f7c1c1"></div> Complet</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#d4edda;border:.5px solid #9fcfab"></div> Cours confirmé</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--blue-light);border:.5px solid var(--blue-border)"></div> Disponible</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--teal-light);border:.5px solid var(--teal-border)"></div> Réservé</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--green-dark);border:.5px solid #639922"></div> Cours confirmé</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--gray-light)"></div> Complet / Fermé</div>
     </div>
     <div id="studentCalendar"><div class="loading"><div class="spinner"></div> Chargement...</div></div>
     <div class="notice" style="margin-top:1rem"><i class="ti ti-info-circle"></i> Pour toute question, contactez votre professeur.</div>
@@ -178,7 +181,7 @@ input:focus,select:focus{border-color:var(--text)}
   <div id="tab-admin" style="display:none">
     <div id="adminLogin" class="login-screen">
       <i class="ti ti-lock" style="font-size:36px;color:var(--text2)"></i>
-      <h2>Connexion administrateur</h2>
+      <h2 style="font-size:18px;font-weight:500">Connexion administrateur</h2>
       <div class="login-form">
         <input type="email" id="loginEmail" placeholder="Email" value="virginie.ternois@gmail.com">
         <input type="password" id="loginPassword" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')doLogin()">
@@ -189,7 +192,7 @@ input:focus,select:focus{border-color:var(--text)}
     </div>
     <div id="adminContent" style="display:none">
       <div class="admin-bar">
-        <span style="color:var(--text2);font-size:12px"><i class="ti ti-shield-check" style="color:var(--success-text)"></i> Connectée en tant qu'admin</span>
+        <span style="font-size:12px;color:var(--text2)"><i class="ti ti-shield-check" style="color:var(--teal-mid)"></i> Connectée en tant qu'admin</span>
         <button class="btn btn-sm btn-danger" onclick="doLogout()"><i class="ti ti-logout"></i> Déconnexion</button>
       </div>
       <div class="tabs" style="margin-bottom:1rem">
@@ -200,28 +203,15 @@ input:focus,select:focus{border-color:var(--text)}
 
       <!-- PLANNING -->
       <div id="adminTab-planning">
-        <div class="toolbar">
-          <div class="field"><label>Début trimestre</label><input type="date" id="trimStart" value="2025-09-01" style="width:auto"></div>
-          <div class="field"><label>Fin trimestre</label><input type="date" id="trimEnd" value="2025-12-20" style="width:auto"></div>
-          <div class="field"><label>Places max</label><input type="number" id="maxPlaces" value="8" min="1" max="30" style="width:72px"></div>
-          <div class="field"><label>&nbsp;</label><button class="btn btn-primary" onclick="generateSlots()"><i class="ti ti-refresh"></i> Générer</button></div>
-          <div class="field"><label>&nbsp;</label><button class="btn" onclick="updateAllMaxPlaces()"><i class="ti ti-adjustments"></i> Màj places</button></div>
-        </div>
-        <div style="margin-bottom:1rem">
-          <div class="section-title">Dates exclues</div>
-          <div id="exclusionList" class="excl-tags"></div>
-          <div class="inline-form">
-            <input type="date" id="newExclusion" style="width:auto">
-            <button class="btn btn-sm" onclick="addExclusion()"><i class="ti ti-plus"></i> Ajouter</button>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;flex-wrap:wrap;gap:8px">
+          <span class="section-title" style="margin:0">Périodes</span>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm btn-primary" onclick="showNewPeriodModal()"><i class="ti ti-plus"></i> Nouvelle période</button>
+            <button class="btn btn-sm btn-danger" onclick="showNewYearModal()"><i class="ti ti-refresh"></i> Nouvelle année</button>
           </div>
         </div>
-        <div class="legend">
-          <div class="legend-item"><div class="legend-dot" style="background:#e1f5ee"></div> Ouvert</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#fcebeb"></div> Complet</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#f1efe8"></div> Fermé</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#d4edda"></div> Confirmé</div>
-        </div>
-        <div id="adminCalendar"></div>
+        <div class="card" style="padding:.5rem 1.25rem;margin-bottom:1rem"><div id="periodList"></div></div>
+        <div id="activePeriodPlanning"></div>
         <div style="margin-top:1.5rem">
           <span class="section-title">Demandes d'annulation en attente</span>
           <div class="card" style="padding:.5rem 1.25rem"><div id="cancelPendingList"></div></div>
@@ -231,26 +221,26 @@ input:focus,select:focus{border-color:var(--text)}
       <!-- STUDENTS -->
       <div id="adminTab-students" style="display:none">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
-          <span class="section-title">Élèves</span>
+          <span class="section-title" style="margin:0">Élèves</span>
           <button class="btn btn-sm btn-primary" onclick="showAddStudent()"><i class="ti ti-plus"></i> Ajouter</button>
         </div>
         <div id="addStudentForm" style="display:none;margin-bottom:.75rem">
           <div class="card">
             <div class="inline-form">
-              <input type="text" id="newStudentName" placeholder="Prénom Nom" style="flex:1;min-width:140px;width:auto">
+              <input type="text" id="newStudentName" placeholder="Prénom Nom" style="flex:1;min-width:140px">
               <button class="btn btn-primary btn-sm" onclick="addStudent()">Enregistrer</button>
               <button class="btn btn-sm" onclick="document.getElementById('addStudentForm').style.display='none'">Annuler</button>
             </div>
-            <div class="notice" style="margin-top:.5rem"><i class="ti ti-info-circle"></i> Les crédits s'ajoutent dans l'onglet "Crédits & paiements".</div>
+            <div class="notice"><i class="ti ti-info-circle"></i> Les crédits s'ajoutent dans l'onglet "Crédits & paiements".</div>
           </div>
         </div>
         <div class="card" style="padding:.5rem 1.25rem"><div id="studentList"></div></div>
       </div>
 
-      <!-- CREDITS & PAIEMENTS -->
+      <!-- CREDITS -->
       <div id="adminTab-credits" style="display:none">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
-          <span class="section-title">Achats de crédits</span>
+          <span class="section-title" style="margin:0">Achats de crédits</span>
           <button class="btn btn-sm btn-primary" onclick="showNewPurchaseModal()"><i class="ti ti-plus"></i> Nouvel achat</button>
         </div>
         <div id="creditPurchaseList"></div>
@@ -281,14 +271,14 @@ input:focus,select:focus{border-color:var(--text)}
   </div>
 </div>
 
-<!-- MODAL NEW PURCHASE -->
-<div id="purchaseModal" class="modal-overlay" onclick="if(event.target===this)closePurchaseModal()">
+<!-- MODAL GENERIC -->
+<div id="genericModal" class="modal-overlay" onclick="if(event.target===this)closeGenericModal()">
   <div class="modal-box">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-      <div class="modal-title">Nouvel achat de crédits</div>
-      <button class="btn btn-sm" onclick="closePurchaseModal()"><i class="ti ti-x"></i></button>
+      <div id="genericModalTitle" class="modal-title"></div>
+      <button class="btn btn-sm" onclick="closeGenericModal()"><i class="ti ti-x"></i></button>
     </div>
-    <div id="purchaseModalContent"></div>
+    <div id="genericModalContent"></div>
   </div>
 </div>
 
@@ -296,13 +286,13 @@ input:focus,select:focus{border-color:var(--text)}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, doc, getDocs, addDoc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore,collection,doc,getDocs,addDoc,updateDoc,deleteDoc,query,where,orderBy,writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const ADMIN_EMAIL="virginie.ternois@gmail.com";
 const CANCEL_HOURS_LIMIT=48;
 const AUTO_CONFIRM_COUNT=3;
-const UPCOMING_DAYS=14; // alerte paiement à venir dans X jours
+const UPCOMING_DAYS=14;
 
 const firebaseConfig={
   apiKey:"AIzaSyBL9Dx58qGd-jQ9McwhPrX0OPCi2gg645E",
@@ -317,22 +307,18 @@ const app=initializeApp(firebaseConfig);
 const db=getFirestore(app);
 const auth=getAuth(app);
 
-// ── Firestore helpers ──────────────────────────────────────
 async function fsGetAll(col){const s=await getDocs(collection(db,col));return s.docs.map(d=>({id:d.id,...d.data()}));}
 async function fsGetWhere(col,f,op,v){const q=query(collection(db,col),where(f,op,v));const s=await getDocs(q);return s.docs.map(d=>({id:d.id,...d.data()}));}
 async function fsAdd(col,data){const r=await addDoc(collection(db,col),data);return{id:r.id,...data};}
 async function fsUpdate(col,id,data){await updateDoc(doc(db,col,id),data);}
 async function fsDelete(col,id){await deleteDoc(doc(db,col,id));}
 
-// ── State ──────────────────────────────────────────────────
-let settings={trimStart:"2025-09-01",trimEnd:"2025-12-20",maxPlaces:8,exclusions:[]};
-let slots=[],students=[],bookings=[],cancelRequests=[],creditPurchases=[];
-let isAdmin=false;
+let periods=[],slots=[],students=[],bookings=[],cancelRequests=[],creditPurchases=[];
+let isAdmin=false,activePeriodId=null;
 
-// ── Utils ──────────────────────────────────────────────────
 const MONTHS=["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
 const DAYS_FR=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
-function parseDate(s){const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);}
+function parseDate(s){if(!s)return new Date(0);const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);}
 function toISO(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
 function formatFull(d){const days=["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];return`${days[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;}
 function formatDateFr(iso){if(!iso)return'';const d=parseDate(iso);return`${d.getDate()} ${MONTHS[d.getMonth()].slice(0,3)} ${d.getFullYear()}`;}
@@ -341,8 +327,8 @@ function showToast(msg,dur=3000){const t=document.getElementById('toast');t.text
 function hoursUntil(dateStr,timeStr){const d=parseDate(dateStr);const[h,m]=(timeStr||'').replace('h',':').split(':').map(Number);d.setHours(h||0,m||0,0,0);return(d-new Date())/3600000;}
 function getSelectedStudentId(){return document.getElementById('studentSelect').value||null;}
 function today(){return toISO(new Date());}
+function getPmtStatus(pmt){if(!pmt)return'pending';if(pmt.status==='paid')return'paid';if(pmt.date&&new Date(pmt.date+'T23:59:59')<new Date())return'overdue';return'pending';}
 
-// ── Auth ───────────────────────────────────────────────────
 onAuthStateChanged(auth,user=>{
   if(user&&user.email===ADMIN_EMAIL){
     isAdmin=true;
@@ -358,21 +344,21 @@ onAuthStateChanged(auth,user=>{
 
 window.doLogin=async function(){
   const email=document.getElementById('loginEmail').value.trim();
-  const password=document.getElementById('loginPassword').value;
+  const pass=document.getElementById('loginPassword').value;
   const errEl=document.getElementById('loginError');
   const spinEl=document.getElementById('loginSpinner');
   errEl.style.display='none';spinEl.style.display='block';
-  try{await signInWithEmailAndPassword(auth,email,password);spinEl.style.display='none';}
+  try{await signInWithEmailAndPassword(auth,email,pass);spinEl.style.display='none';}
   catch(e){spinEl.style.display='none';errEl.textContent='Email ou mot de passe incorrect.';errEl.style.display='block';}
 };
 window.doLogout=async function(){await signOut(auth);showToast("Déconnectée");};
 
-// ── Init ───────────────────────────────────────────────────
 async function init(){
   try{
     await loadAll();
     populateStudentSelect();
     checkUrlParam();
+    setActivePeriod();
     renderStudentCalendar();
   }catch(e){
     console.error(e);
@@ -381,29 +367,34 @@ async function init(){
 }
 
 async function loadAll(){
-  const[s,sl,st,bk,cr,cp]=await Promise.all([
-    fsGetAll("settings"),fsGetAll("slots"),fsGetAll("students"),
+  const[pe,sl,st,bk,cr,cp]=await Promise.all([
+    fsGetAll("periods"),fsGetAll("slots"),fsGetAll("students"),
     fsGetAll("bookings"),fsGetWhere("cancelRequests","status","==","pending"),fsGetAll("creditPurchases"),
   ]);
-  if(s&&s.length){const{id,...rest}=s[0];settings={...settings,...rest};settings.id=s[0].id;}
-  slots=sl||[];
+  periods=(pe||[]).sort((a,b)=>a.startDate.localeCompare(b.startDate));
+  slots=(sl||[]).sort((a,b)=>a.date.localeCompare(b.date));
   students=(st||[]).sort((a,b)=>a.name.localeCompare(b.name));
   bookings=bk||[];cancelRequests=cr||[];creditPurchases=cp||[];
 }
 
-// ── URL param ──────────────────────────────────────────────
+function setActivePeriod(){
+  const t=today();
+  let active=periods.find(p=>p.startDate<=t&&p.endDate>=t);
+  if(!active&&periods.length)active=periods[periods.length-1];
+  activePeriodId=active?active.id:null;
+}
+
 function checkUrlParam(){
   const params=new URLSearchParams(window.location.search);
   const eleve=params.get('eleve');if(!eleve)return;
   const st=students.find(s=>slugify(s.name)===eleve.toLowerCase());
   if(st){
     document.getElementById('studentSelect').value=st.id;
-    document.getElementById('studentPickerBlock').style.display='none';
+    document.getElementById('heroBanner').querySelector('div').style.display='none';
     onStudentChange();
   }
 }
 
-// ── Tabs ───────────────────────────────────────────────────
 window.showTab=function(t){
   document.getElementById('tab-student').style.display=t==='student'?'block':'none';
   document.getElementById('tab-admin').style.display=t==='admin'?'block':'none';
@@ -416,74 +407,209 @@ window.showAdminTab=function(t){
     document.getElementById('atab-'+x).classList.toggle('active',x===t);
   });
   if(t==='credits')renderCreditPurchases();
+  if(t==='students')renderStudents();
 };
 
-// ── Settings ───────────────────────────────────────────────
-async function saveSettings(){
-  const tsEl=document.getElementById('trimStart');
-  const teEl=document.getElementById('trimEnd');
-  const mpEl=document.getElementById('maxPlaces');
-  if(tsEl)settings.trimStart=tsEl.value;
-  if(teEl)settings.trimEnd=teEl.value;
-  if(mpEl)settings.maxPlaces=parseInt(mpEl.value)||8;
-  const data={trimStart:settings.trimStart,trimEnd:settings.trimEnd,maxPlaces:settings.maxPlaces,exclusions:settings.exclusions||[]};
-  if(settings.id){await fsUpdate("settings",settings.id,data);}
-  else{const r=await fsAdd("settings",data);settings.id=r.id;}
+// ── PERIODS ─────────────────────────────────────────────────
+function getPeriodStatus(p){
+  const t=today();
+  if(p.endDate<t)return'past';
+  if(p.startDate>t)return'future';
+  return'active';
 }
-window.generateSlots=async function(){
-  await saveSettings();
-  const start=parseDate(settings.trimStart),end=parseDate(settings.trimEnd);
-  const excl=new Set(settings.exclusions||[]);
-  const existingDates=new Set(slots.map(s=>s.date));
+
+function renderPeriodList(){
+  const el=document.getElementById('periodList');
+  if(!periods.length){el.innerHTML='<div class="empty">Aucune période. Créez votre premier trimestre.</div>';return;}
+  el.innerHTML=periods.map(p=>{
+    const status=getPeriodStatus(p);
+    const badgeCls=status==='active'?'period-active':status==='past'?'period-past':'period-future';
+    const badgeLbl=status==='active'?'En cours':status==='past'?'Passé':'À venir';
+    const pSlots=slots.filter(s=>s.periodId===p.id);
+    return`<div class="period-row">
+      <i class="ti ti-calendar" style="color:var(--text2);font-size:15px" aria-hidden="true"></i>
+      <div style="flex:1">
+        <div style="font-weight:500;font-size:13px">${p.name}</div>
+        <div style="font-size:11px;color:var(--text2)">${formatDateFr(p.startDate)} → ${formatDateFr(p.endDate)} · ${pSlots.length} créneaux · ${p.maxPlaces} places</div>
+      </div>
+      <span class="period-badge ${badgeCls}">${badgeLbl}</span>
+      <button class="btn btn-sm" onclick="selectActivePeriod('${p.id}')" title="Voir ce planning"><i class="ti ti-eye"></i></button>
+      <button class="btn btn-sm btn-danger" onclick="deletePeriod('${p.id}')" title="Supprimer"><i class="ti ti-trash"></i></button>
+    </div>`;
+  }).join('');
+}
+
+window.selectActivePeriod=function(id){activePeriodId=id;renderActivePeriodPlanning();};
+
+window.deletePeriod=async function(id){
+  if(!confirm("Supprimer cette période et tous ses créneaux ?"))return;
+  const pSlots=slots.filter(s=>s.periodId===id);
+  for(const s of pSlots)await fsDelete("slots",s.id);
+  slots=slots.filter(s=>s.periodId!==id);
+  await fsDelete("periods",id);
+  periods=periods.filter(p=>p.id!==id);
+  if(activePeriodId===id){setActivePeriod();}
+  renderAdmin();showToast("Période supprimée");
+};
+
+function renderActivePeriodPlanning(){
+  const el=document.getElementById('activePeriodPlanning');
+  const period=periods.find(p=>p.id===activePeriodId);
+  if(!period){el.innerHTML='<div class="empty">Sélectionnez une période.</div>';return;}
+  const pSlots=slots.filter(s=>s.periodId===period.id);
+  const excl=period.exclusions||[];
+  let html=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;flex-wrap:wrap;gap:6px">
+    <div>
+      <div style="font-weight:500;font-size:14px">${period.name}</div>
+      <div style="font-size:11px;color:var(--text2)">${formatDateFr(period.startDate)} → ${formatDateFr(period.endDate)} · ${period.maxPlaces} places max</div>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn btn-sm btn-primary" onclick="generateSlotsForPeriod('${period.id}')"><i class="ti ti-refresh"></i> Générer créneaux</button>
+      <button class="btn btn-sm" onclick="updatePeriodMaxPlaces('${period.id}')"><i class="ti ti-adjustments"></i> Màj places</button>
+    </div>
+  </div>
+  <div style="margin-bottom:.75rem">
+    <div style="font-size:11px;color:var(--text2);margin-bottom:4px">Dates exclues :</div>
+    <div id="exclList-${period.id}" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px"></div>
+    <div class="inline-form">
+      <input type="date" id="exclInput-${period.id}" style="width:auto">
+      <button class="btn btn-sm" onclick="addExclusion('${period.id}')"><i class="ti ti-plus"></i> Exclure</button>
+    </div>
+  </div>`;
+  const legend=`<div class="legend" style="margin-bottom:.75rem">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--blue-light);border:.5px solid var(--blue-border)"></div> Ouvert</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--teal-light)"></div> Inscrits</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--green-dark)"></div> Confirmé</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--gray-light)"></div> Fermé/Complet</div>
+  </div>`;
+  html+=legend;
+  html+=buildCalendarHtml(period,pSlots,excl,'openAdminModal',null);
+  el.innerHTML=html;
+  renderExclusionsFor(period);
+}
+
+function renderExclusionsFor(period){
+  const el=document.getElementById('exclList-'+period.id);
+  if(!el)return;
+  el.innerHTML=(period.exclusions||[]).map(e=>{
+    const d=parseDate(e);
+    return`<span class="excl-tag">${d.getDate()} ${MONTHS[d.getMonth()].slice(0,3)} <span style="cursor:pointer;font-weight:700" onclick="removeExclusion('${period.id}','${e}')">×</span></span>`;
+  }).join('');
+}
+
+window.addExclusion=async function(periodId){
+  const v=document.getElementById('exclInput-'+periodId).value;
+  if(!v)return;
+  const period=periods.find(p=>p.id===periodId);if(!period)return;
+  const excl=[...(period.exclusions||[])];
+  if(excl.includes(v))return;
+  excl.push(v);
+  await fsUpdate("periods",periodId,{exclusions:excl});
+  period.exclusions=excl;
+  const existing=slots.find(s=>s.date===v&&s.periodId===periodId);
+  if(existing){await fsDelete("slots",existing.id);slots=slots.filter(s=>!(s.date===v&&s.periodId===periodId));}
+  renderActivePeriodPlanning();showToast("Date exclue");
+};
+window.removeExclusion=async function(periodId,e){
+  const period=periods.find(p=>p.id===periodId);if(!period)return;
+  period.exclusions=(period.exclusions||[]).filter(x=>x!==e);
+  await fsUpdate("periods",periodId,{exclusions:period.exclusions});
+  renderActivePeriodPlanning();showToast("Date réintégrée — cliquez Générer pour recréer le créneau");
+};
+
+window.generateSlotsForPeriod=async function(periodId){
+  const period=periods.find(p=>p.id===periodId);if(!period)return;
+  const start=parseDate(period.startDate),end=parseDate(period.endDate);
+  const excl=new Set(period.exclusions||[]);
+  const existingDates=new Set(slots.filter(s=>s.periodId===periodId).map(s=>s.date));
   let d=new Date(start),count=0;
   while(d<=end){
     const dow=d.getDay(),iso=toISO(d);
     if((dow===5||dow===6)&&!excl.has(iso)&&!existingDates.has(iso)){
       const time=dow===5?'18h00':'10h00';
       const label=dow===5?'Vendredi 18h':'Samedi 10h';
-      const r=await fsAdd("slots",{date:iso,label,time,maxPlaces:settings.maxPlaces,closed:false,confirmed:false});
+      const r=await fsAdd("slots",{date:iso,label,time,maxPlaces:period.maxPlaces,closed:false,confirmed:false,periodId});
       slots.push(r);count++;
     }
     d.setDate(d.getDate()+1);
   }
   slots.sort((a,b)=>a.date.localeCompare(b.date));
-  renderAdmin();renderStudentCalendar();showToast(count+' créneau(x) généré(s)');
-};
-window.updateAllMaxPlaces=async function(){
-  const max=parseInt(document.getElementById('maxPlaces').value)||8;
-  if(!confirm('Mettre à jour le nombre de places à '+max+' sur TOUS les créneaux ?'))return;
-  for(const slot of slots){await fsUpdate("slots",slot.id,{maxPlaces:max});slot.maxPlaces=max;}
-  renderAdmin();renderStudentCalendar();showToast('Places mises à jour');
+  renderActivePeriodPlanning();renderStudentCalendar();showToast(count+' créneau(x) généré(s)');
 };
 
-// ── Exclusions ─────────────────────────────────────────────
-function renderExclusions(){
-  document.getElementById('exclusionList').innerHTML=(settings.exclusions||[]).map(e=>{
-    const d=parseDate(e);
-    return`<span class="excl-tag">${d.getDate()} ${MONTHS[d.getMonth()].slice(0,3)} <span style="cursor:pointer;font-weight:700" onclick="removeExclusion('${e}')">×</span></span>`;
-  }).join('');
-}
-window.removeExclusion=async function(e){
-  settings.exclusions=(settings.exclusions||[]).filter(x=>x!==e);
-  await saveSettings();renderExclusions();showToast("Date réintégrée — cliquez Générer pour recréer le créneau");
-};
-window.addExclusion=async function(){
-  const v=document.getElementById('newExclusion').value;
-  if(!v||(settings.exclusions||[]).includes(v))return;
-  settings.exclusions=[...(settings.exclusions||[]),v];
-  await saveSettings();
-  const existing=slots.find(s=>s.date===v);
-  if(existing){await fsDelete("slots",existing.id);slots=slots.filter(s=>s.date!==v);}
-  renderExclusions();renderAdmin();renderStudentCalendar();showToast("Date exclue");
+window.updatePeriodMaxPlaces=async function(periodId){
+  const period=periods.find(p=>p.id===periodId);if(!period)return;
+  const max=parseInt(prompt(`Nouveau nombre de places max (actuel : ${period.maxPlaces}) :`));
+  if(!max||max<1)return;
+  period.maxPlaces=max;
+  await fsUpdate("periods",periodId,{maxPlaces:max});
+  const pSlots=slots.filter(s=>s.periodId===periodId);
+  for(const s of pSlots){await fsUpdate("slots",s.id,{maxPlaces:max});s.maxPlaces=max;}
+  renderActivePeriodPlanning();renderStudentCalendar();showToast("Places mises à jour");
 };
 
-// ── Calendar ───────────────────────────────────────────────
-function buildCalendar(containerId,clickFn,studentId){
-  const el=document.getElementById(containerId);if(!el)return;
-  if(!slots.length){el.innerHTML='<div class="empty">Aucun créneau. Configurez les dates et cliquez Générer.</div>';return;}
-  const slotByDate={};slots.forEach(s=>slotByDate[s.date]=s);
-  const excl=new Set(settings.exclusions||[]);
-  const start=parseDate(settings.trimStart),end=parseDate(settings.trimEnd);
+// ── NEW PERIOD MODAL ─────────────────────────────────────────
+window.showNewPeriodModal=function(){
+  document.getElementById('genericModalTitle').textContent='Nouvelle période';
+  document.getElementById('genericModalContent').innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:12px;font-size:13px">
+      <div class="field"><label>Nom de la période</label><input type="text" id="npName" placeholder="ex: Trimestre automne 2025" style="width:100%"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <div class="field"><label>Début</label><input type="date" id="npStart" style="width:auto"></div>
+        <div class="field"><label>Fin</label><input type="date" id="npEnd" style="width:auto"></div>
+        <div class="field"><label>Places max</label><input type="number" id="npMax" value="6" min="1" max="30" style="width:72px"></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:.5rem">
+        <button class="btn btn-primary" onclick="saveNewPeriod()" style="flex:1">Créer la période</button>
+        <button class="btn" onclick="closeGenericModal()">Annuler</button>
+      </div>
+    </div>`;
+  document.getElementById('genericModal').classList.add('open');
+};
+
+window.saveNewPeriod=async function(){
+  const name=document.getElementById('npName').value.trim();
+  const startDate=document.getElementById('npStart').value;
+  const endDate=document.getElementById('npEnd').value;
+  const maxPlaces=parseInt(document.getElementById('npMax').value)||6;
+  if(!name||!startDate||!endDate){showToast("Remplissez tous les champs");return;}
+  const r=await fsAdd("periods",{name,startDate,endDate,maxPlaces,exclusions:[],archived:false});
+  periods.push(r);periods.sort((a,b)=>a.startDate.localeCompare(b.startDate));
+  activePeriodId=r.id;
+  closeGenericModal();renderAdmin();showToast("Période créée !");
+};
+
+// ── NEW YEAR MODAL ───────────────────────────────────────────
+window.showNewYearModal=function(){
+  document.getElementById('genericModalTitle').textContent='Démarrer une nouvelle année';
+  document.getElementById('genericModalContent').innerHTML=`
+    <div style="background:var(--red-light);border:.5px solid var(--red-border);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--red-text)">
+      <i class="ti ti-alert-triangle"></i> Cette action va <strong>archiver</strong> toutes les périodes et créneaux actuels. Les élèves, crédits et historiques sont conservés. Les créneaux et réservations seront archivés et ne seront plus visibles.
+    </div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:8px">Pour confirmer, tapez <strong>NOUVELLE ANNÉE</strong> :</div>
+    <input type="text" id="newYearConfirm" placeholder="Tapez ici pour confirmer…" style="width:100%;margin-bottom:12px">
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-danger" onclick="confirmNewYear()" style="flex:1">Archiver et recommencer</button>
+      <button class="btn" onclick="closeGenericModal()">Annuler</button>
+    </div>`;
+  document.getElementById('genericModal').classList.add('open');
+};
+
+window.confirmNewYear=async function(){
+  const val=document.getElementById('newYearConfirm').value.trim();
+  if(val!=='NOUVELLE ANNÉE'){showToast("Saisie incorrecte");return;}
+  for(const p of periods)await fsUpdate("periods",p.id,{archived:true});
+  for(const s of slots)await fsUpdate("slots",s.id,{archived:true});
+  periods=[];slots=[];activePeriodId=null;
+  closeGenericModal();renderAdmin();renderStudentCalendar();showToast("Nouvelle année démarrée !");
+};
+
+// ── CALENDAR BUILDER ─────────────────────────────────────────
+function buildCalendarHtml(period,pSlots,excl,clickFn,studentId){
+  if(!pSlots.length)return'<div class="empty">Aucun créneau. Cliquez "Générer créneaux".</div>';
+  const slotByDate={};pSlots.forEach(s=>slotByDate[s.date]=s);
+  const exclSet=new Set(excl);
+  const start=parseDate(period.startDate),end=parseDate(period.endDate);
   const firstMonth=new Date(start.getFullYear(),start.getMonth(),1);
   const lastMonth=new Date(end.getFullYear(),end.getMonth(),1);
   let html='',cur=new Date(firstMonth);
@@ -497,7 +623,7 @@ function buildCalendar(containerId,clickFn,studentId){
     for(let day=1;day<=daysInMonth;day++){
       const iso=`${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
       const slot=slotByDate[iso];
-      const isExcl=excl.has(iso)&&!slot;
+      const isExcl=exclSet.has(iso)&&!slot;
       let cls='cal-day';if(isExcl)cls+=' excluded';if(slot)cls+=' has-slot';
       let inner=`<div class="day-num">${day}</div>`;
       if(slot){
@@ -505,26 +631,32 @@ function buildCalendar(containerId,clickFn,studentId){
         const taken=slotBk.length,isFull=taken>=slot.maxPlaces;
         const isBooked=studentId&&slotBk.some(b=>b.studentId===studentId);
         const hasCancelReq=studentId&&cancelRequests.some(r=>r.slotId===slot.id&&r.studentId===studentId&&r.status==='pending');
-        let chipCls=slot.closed?'chip-closed':slot.confirmed?'chip-confirmed':isBooked&&hasCancelReq?'chip-pending-cancel':isBooked?'chip-booked':isFull?'chip-full':'chip-open';
+        let chipCls;
+        if(slot.closed||slot.archived)chipCls='chip-closed';
+        else if(slot.confirmed)chipCls='chip-confirmed';
+        else if(isBooked&&hasCancelReq)chipCls='chip-cancel';
+        else if(isBooked)chipCls='chip-booked';
+        else if(isFull)chipCls='chip-full';
+        else chipCls='chip-available';
         const lbl=slot.label.split(' ')[1];
-        inner+=`<span class="slot-chip ${chipCls}">${lbl}<br>${taken}/${slot.maxPlaces}${slot.confirmed?' ✓':''}</span>`;
+        inner+=`<span class="slot-chip ${chipCls}">${lbl}<br>${taken}/${slot.maxPlaces}</span>`;
       }
       const onclick=slot?`onclick="${clickFn}('${slot.id}')"`:'';
       html+=`<div class="${cls}" ${onclick}>${inner}</div>`;
     }
     html+=`</div></div>`;cur.setMonth(cur.getMonth()+1);
   }
-  el.innerHTML=html;
+  return html;
 }
 
-// ── Admin modal ────────────────────────────────────────────
+// ── ADMIN SLOT MODAL ─────────────────────────────────────────
 window.openAdminModal=async function(slotId){
   const slot=slots.find(x=>x.id===slotId);if(!slot)return;
   const d=parseDate(slot.date);
   document.getElementById('modalTitle').textContent=formatFull(d)+' · '+slot.time;
   const slotBk=bookings.filter(b=>b.slotId===slotId&&b.status==='confirmed');
   const taken=slotBk.length,isFull=taken>=slot.maxPlaces;
-  const status=slot.confirmed?'<span class="badge badge-confirmed"><i class="ti ti-check"></i> Confirmé</span>':slot.closed?'<span class="badge badge-closed">Fermé</span>':isFull?'<span class="badge badge-full">Complet</span>':'<span class="badge badge-open">Ouvert</span>';
+  const status=slot.confirmed?'<span class="badge badge-confirmed"><i class="ti ti-check"></i> Confirmé</span>':slot.closed?'<span class="badge badge-closed">Fermé</span>':isFull?'<span class="badge badge-full">Complet</span>':'<span class="badge badge-available">Ouvert</span>';
   const bookedNames=slotBk.map(b=>{const st=students.find(x=>x.id===b.studentId);return st?st.name:'?';});
   const pendingCancels=cancelRequests.filter(r=>r.slotId===slotId&&r.status==='pending');
   let html=`<div class="modal-row"><span>Statut</span>${status}</div>`;
@@ -532,11 +664,11 @@ window.openAdminModal=async function(slotId){
   if(bookedNames.length)html+=`<div class="modal-row"><span>Inscrits</span><span style="font-size:12px;text-align:right;max-width:200px">${bookedNames.join(', ')}</span></div>`;
   if(pendingCancels.length){
     const names=pendingCancels.map(r=>{const st=students.find(x=>x.id===r.studentId);return st?st.name:'?';});
-    html+=`<div class="modal-row"><span style="color:var(--warning-text)">Annulations</span><span style="font-size:12px">${names.join(', ')}</span></div>`;
+    html+=`<div class="modal-row"><span style="color:var(--amber-text)">Annulations demandées</span><span style="font-size:12px">${names.join(', ')}</span></div>`;
   }
   html+=`<div style="margin-top:1rem;display:flex;gap:8px;flex-wrap:wrap">`;
   html+=`<button class="btn btn-sm" onclick="adminToggleSlot('${slotId}')">${slot.closed?'<i class="ti ti-lock-open"></i> Rouvrir':'<i class="ti ti-lock"></i> Fermer'}</button>`;
-  if(!slot.confirmed)html+=`<button class="btn btn-sm btn-success" onclick="adminConfirmSlot('${slotId}')"><i class="ti ti-check"></i> Confirmer</button>`;
+  if(!slot.confirmed)html+=`<button class="btn btn-sm btn-success" onclick="adminConfirmSlot('${slotId}')"><i class="ti ti-check"></i> Confirmer le cours</button>`;
   else html+=`<button class="btn btn-sm" onclick="adminUnconfirmSlot('${slotId}')"><i class="ti ti-x"></i> Retirer confirmation</button>`;
   if(slotBk.length){
     html+=`<div style="margin-top:.75rem;width:100%;border-top:.5px solid var(--border);padding-top:.75rem;font-size:12px;color:var(--text2)">Annulation administrative :</div>`;
@@ -553,17 +685,17 @@ window.closeModal=function(){document.getElementById('slotModal').classList.remo
 window.adminToggleSlot=async function(slotId){
   const slot=slots.find(x=>x.id===slotId);if(!slot)return;
   await fsUpdate("slots",slotId,{closed:!slot.closed});slot.closed=!slot.closed;
-  closeModal();renderAdmin();showToast(slot.closed?"Créneau fermé":"Créneau rouvert");
+  closeModal();renderActivePeriodPlanning();showToast(slot.closed?"Fermé":"Rouvert");
 };
 window.adminConfirmSlot=async function(slotId){
   await fsUpdate("slots",slotId,{confirmed:true});
   const slot=slots.find(x=>x.id===slotId);if(slot)slot.confirmed=true;
-  closeModal();renderAdmin();showToast("Cours confirmé !");
+  closeModal();renderActivePeriodPlanning();showToast("Cours confirmé !");
 };
 window.adminUnconfirmSlot=async function(slotId){
   await fsUpdate("slots",slotId,{confirmed:false});
   const slot=slots.find(x=>x.id===slotId);if(slot)slot.confirmed=false;
-  closeModal();renderAdmin();showToast("Confirmation retirée");
+  closeModal();renderActivePeriodPlanning();showToast("Confirmation retirée");
 };
 window.adminCancelBooking=async function(bookingId,slotId){
   if(!confirm("Confirmer l'annulation administrative ?"))return;
@@ -576,7 +708,7 @@ window.adminCancelBooking=async function(bookingId,slotId){
   closeModal();renderAdmin();showToast("Annulation effectuée");
 };
 
-// ── Cancel requests ────────────────────────────────────────
+// ── CANCEL REQUESTS ──────────────────────────────────────────
 async function renderCancelPendingList(){
   const el=document.getElementById('cancelPendingList');
   const pending=cancelRequests.filter(r=>r.status==='pending');
@@ -612,12 +744,20 @@ window.rejectCancel=async function(requestId){
   renderAdmin();showToast("Demande refusée");
 };
 
-// ── Students ───────────────────────────────────────────────
-function studentTotalCredits(studentId){
-  return creditPurchases.filter(cp=>cp.studentId===studentId).reduce((s,cp)=>s+(cp.creditsBought||0),0);
-}
-function studentUsedCredits(studentId){
-  return bookings.filter(b=>b.studentId===studentId&&b.status==='confirmed').length;
+// ── STUDENTS ─────────────────────────────────────────────────
+function studentStats(studentId){
+  const purchases=creditPurchases.filter(cp=>cp.studentId===studentId);
+  const totalBought=purchases.reduce((s,cp)=>s+(cp.creditsBought||0),0);
+  const used=bookings.filter(b=>b.studentId===studentId&&b.status==='confirmed').length;
+  const st=students.find(x=>x.id===studentId);
+  const remaining=st?st.credits:0;
+  let pendingCount=0,pendingAmount=0;
+  purchases.forEach(cp=>{
+    (cp.payments||[]).forEach(pmt=>{
+      if(pmt&&getPmtStatus(pmt)!=='paid'){pendingCount++;pendingAmount+=(parseFloat(pmt.amount)||0);}
+    });
+  });
+  return{totalBought,used,remaining,pendingCount,pendingAmount};
 }
 
 function renderStudents(){
@@ -626,41 +766,33 @@ function renderStudents(){
   el.innerHTML=students.map(st=>{
     const initials=st.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
     const url=`${window.location.origin}${window.location.pathname}?eleve=${slugify(st.name)}`;
-    const totalBought=studentTotalCredits(st.id);
-    const used=studentUsedCredits(st.id);
-    const remaining=st.credits;
-    const low=remaining<2;
-    return`<div class="student-row" id="strow-${st.id}">
-      <div class="avatar">${initials}</div>
-      <div style="flex:1">
-        <div style="font-weight:500;font-size:13px">${st.name}</div>
-        <div style="font-size:11px;color:var(--text2);margin-top:2px">
-          Total acheté : <strong>${totalBought}</strong> · Utilisés : <strong>${used}</strong> · Restants : <strong>${remaining}</strong>
+    const s=studentStats(st.id);
+    const low=s.remaining<2;
+    return`<div>
+      <div class="student-row">
+        <div class="avatar">${initials}</div>
+        <div style="flex:1">
+          <div style="font-weight:500;font-size:13px">${st.name}</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px">Achetés : ${s.totalBought} · Séances : ${s.used} · Restants : ${s.remaining}${s.pendingCount>0?` · <span style="color:var(--red-text)">${s.pendingCount} échéance(s) en attente (${s.pendingAmount.toFixed(0)} €)</span>`:''}</div>
+          <div style="margin-top:4px"><span class="url-chip" onclick="copyUrl('${url}')"><i class="ti ti-link"></i> Copier lien</span></div>
         </div>
-        <div style="margin-top:4px;display:flex;gap:6px;flex-wrap:wrap">
-          <span class="url-chip" onclick="copyUrl('${url}')"><i class="ti ti-link"></i> Copier lien</span>
-        </div>
+        <span style="background:${low?'var(--red-light)':'var(--teal-light)'};color:${low?'var(--red-text)':'var(--teal-dark)'};border-radius:var(--radius);padding:2px 8px;font-size:12px;font-weight:500">${s.remaining} crédit(s)</span>
+        <button class="btn btn-sm" onclick="toggleEditStudent('${st.id}')"><i class="ti ti-pencil"></i></button>
+        <button class="btn btn-sm btn-danger" onclick="removeStudent('${st.id}')"><i class="ti ti-trash"></i></button>
       </div>
-      <span class="credit-badge${low?' low':''}">${remaining} crédit(s)</span>
-      <button class="btn btn-sm" onclick="toggleEditStudent('${st.id}','${st.name.replace(/'/g,"\\'")}')"><i class="ti ti-pencil"></i></button>
-      <button class="btn btn-sm btn-danger" onclick="removeStudent('${st.id}')"><i class="ti ti-trash"></i></button>
-    </div>
-    <div id="stedit-${st.id}" style="display:none;padding:0 0 8px 42px">
-      <div class="edit-form">
-        <input type="text" id="editname-${st.id}" value="${st.name}" style="flex:1;min-width:140px;width:auto">
-        <button class="btn btn-primary btn-sm" onclick="saveStudentName('${st.id}')">Enregistrer</button>
-        <button class="btn btn-sm" onclick="toggleEditStudent('${st.id}','')">Annuler</button>
+      <div id="stedit-${st.id}" style="display:none;padding:0 0 8px 42px">
+        <div style="background:var(--bg2);border-radius:var(--radius);padding:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input type="text" id="editname-${st.id}" value="${st.name}" style="flex:1;min-width:140px">
+          <button class="btn btn-primary btn-sm" onclick="saveStudentName('${st.id}')">Enregistrer</button>
+          <button class="btn btn-sm" onclick="toggleEditStudent('${st.id}')">Annuler</button>
+        </div>
       </div>
     </div>`;
   }).join('');
 }
-window.toggleEditStudent=function(id,name){
-  const el=document.getElementById('stedit-'+id);
-  el.style.display=el.style.display==='none'?'block':'none';
-};
+window.toggleEditStudent=function(id){const el=document.getElementById('stedit-'+id);el.style.display=el.style.display==='none'?'block':'none';};
 window.saveStudentName=async function(id){
-  const newName=document.getElementById('editname-'+id).value.trim();
-  if(!newName)return;
+  const newName=document.getElementById('editname-'+id).value.trim();if(!newName)return;
   await fsUpdate("students",id,{name:newName});
   const st=students.find(x=>x.id===id);if(st)st.name=newName;
   students.sort((a,b)=>a.name.localeCompare(b.name));
@@ -668,84 +800,73 @@ window.saveStudentName=async function(id){
 };
 window.copyUrl=function(url){navigator.clipboard.writeText(url).then(()=>showToast("Lien copié !")).catch(()=>prompt("Copiez ce lien :",url));};
 window.removeStudent=async function(id){
-  if(!confirm("Supprimer cet élève ? Ses réservations seront conservées."))return;
+  if(!confirm("Supprimer cet élève ?"))return;
   await fsDelete("students",id);
   students=students.filter(x=>x.id!==id);
   renderStudents();populateStudentSelect();renderAdmin();showToast("Élève supprimé(e)");
 };
 window.showAddStudent=function(){document.getElementById('addStudentForm').style.display='block';document.getElementById('newStudentName').focus();};
 window.addStudent=async function(){
-  const name=document.getElementById('newStudentName').value.trim();
-  if(!name)return;
+  const name=document.getElementById('newStudentName').value.trim();if(!name)return;
   const r=await fsAdd("students",{name,credits:0});
   students.push(r);students.sort((a,b)=>a.name.localeCompare(b.name));
   document.getElementById('newStudentName').value='';
   document.getElementById('addStudentForm').style.display='none';
-  renderStudents();populateStudentSelect();showToast("Élève ajouté(e) — ajoutez ses crédits dans l'onglet Crédits");
+  renderStudents();populateStudentSelect();showToast("Élève ajouté(e)");
 };
 
-// ── Credit purchases ───────────────────────────────────────
-function getPmtStatus(pmt){
-  if(!pmt||!pmt.date)return'pending';
-  if(pmt.status==='paid')return'paid';
-  const due=new Date(pmt.date);due.setHours(23,59,59);
-  return due<new Date()?'overdue':'pending';
-}
-
+// ── CREDIT PURCHASES ──────────────────────────────────────────
 function renderCreditPurchases(){
   const el=document.getElementById('creditPurchaseList');
-  if(!students.length){el.innerHTML='<div class="empty">Aucun élève enregistré.</div>';return;}
+  if(!students.length){el.innerHTML='<div class="empty">Aucun élève.</div>';return;}
   let html='';
   students.forEach(st=>{
+    const s=studentStats(st.id);
     const purchases=creditPurchases.filter(cp=>cp.studentId===st.id);
-    const totalBought=purchases.reduce((s,cp)=>s+(cp.creditsBought||0),0);
-    const used=studentUsedCredits(st.id);
-    const remaining=st.credits;
     html+=`<div style="margin-bottom:1.5rem">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;flex-wrap:wrap;gap:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:8px">
         <div style="font-weight:500;font-size:14px">${st.name}</div>
         <button class="btn btn-sm btn-primary" onclick="showNewPurchaseModal('${st.id}','${st.name.replace(/'/g,"\\'")}')"><i class="ti ti-plus"></i> Ajouter un achat</button>
       </div>
-      <div class="student-recap">
-        <div class="recap-item"><strong>${totalBought}</strong><br>crédits achetés</div>
-        <div class="recap-item"><strong>${used}</strong><br>séances effectuées</div>
-        <div class="recap-item"><strong style="color:${remaining<2?'var(--danger-text)':'var(--success-text)'}">${remaining}</strong><br>crédits restants</div>
+      <div class="student-stats">
+        <div class="sstats-box"><span class="sstats-val">${s.totalBought}</span><span class="sstats-lbl">achetés</span></div>
+        <div class="sstats-box"><span class="sstats-val">${s.used}</span><span class="sstats-lbl">séances réservées</span></div>
+        <div class="sstats-box"><span class="sstats-val" style="color:${s.remaining<2?'var(--red-text)':'var(--teal-mid)'}">${s.remaining}</span><span class="sstats-lbl">crédits restants</span></div>
+        <div class="sstats-box"><span class="sstats-val" style="color:${s.pendingCount>0?'var(--red-text)':'var(--teal-mid)'}">${s.pendingCount}</span><span class="sstats-lbl">échéance(s) en attente</span></div>
+        <div class="sstats-box"><span class="sstats-val" style="color:${s.pendingAmount>0?'var(--red-text)':'var(--teal-mid)'}">${s.pendingAmount.toFixed(0)} €</span><span class="sstats-lbl">montant restant</span></div>
       </div>`;
-    if(!purchases.length){
-      html+=`<div class="notice">Aucun achat enregistré pour cet élève.</div>`;
-    }else{
+    if(!purchases.length){html+=`<div class="notice">Aucun achat enregistré.</div>`;}
+    else{
       purchases.forEach(cp=>{
         const pmts=cp.payments||[];
         const paidCount=pmts.filter(p=>p&&p.status==='paid').length;
+        const totalAmt=(cp.totalAmount||0);
         html+=`<div class="purchase-card">
           <div class="purchase-header">
             <div>
-              <div class="purchase-ref">${cp.reference||'Achat sans référence'}</div>
-              <div class="purchase-meta">${cp.purchaseDate?formatDateFr(cp.purchaseDate):''} · ${cp.creditsBought||0} crédits</div>
+              <div style="font-weight:500;font-size:13px">${cp.reference||'Achat'}</div>
+              <div style="font-size:11px;color:var(--text2)">${formatDateFr(cp.purchaseDate)} · ${cp.creditsBought||0} crédits · <strong>${totalAmt} €</strong> · ${pmts.length} échéance(s) · ${paidCount} payée(s)</div>
             </div>
-            <div style="display:flex;gap:6px;align-items:center">
-              <span style="font-size:11px;color:var(--text2)">${paidCount}/${pmts.length} paiement(s)</span>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
               <button class="btn btn-sm" onclick="addEcheance('${cp.id}')"><i class="ti ti-plus"></i> Échéance</button>
-              <button class="btn btn-sm btn-danger" onclick="deletePurchase('${cp.id}','${st.id}',${cp.creditsBought||0})" title="Supprimer cet achat"><i class="ti ti-trash"></i></button>
+              <button class="btn btn-sm btn-danger" onclick="deletePurchase('${cp.id}','${st.id}',${cp.creditsBought||0})" title="Supprimer"><i class="ti ti-trash"></i></button>
             </div>
           </div>`;
-        if(pmts.length){
-          html+=`<div>`;
+        if(!pmts.length){html+=`<div class="notice">Aucune échéance. Cliquez "+ Échéance".</div>`;}
+        else{
           pmts.forEach((pmt,i)=>{
             if(!pmt)return;
             const status=getPmtStatus(pmt);
             const cls=status==='paid'?'pmt-paid':status==='overdue'?'pmt-overdue':'pmt-pending';
             const label=status==='paid'?'✓ Payé':status==='overdue'?'⚠ En retard':'En attente';
-            html+=`<div class="echeance-row">
+            html+=`<div class="ech-row">
               <span class="pmt-badge ${cls}" onclick="cyclePmt('${cp.id}',${i})">${label}</span>
-              <input type="date" value="${pmt.date||''}" style="width:140px;font-size:12px;padding:4px 6px" onchange="setPmtDate('${cp.id}',${i},this.value)">
+              <input type="date" value="${pmt.date||''}" style="width:130px;font-size:12px;padding:4px 6px" onchange="setPmtDate('${cp.id}',${i},this.value)">
+              <input type="number" value="${pmt.amount||''}" placeholder="Montant €" style="width:90px;font-size:12px;padding:4px 6px" onchange="setPmtAmount('${cp.id}',${i},this.value)">
               <input type="text" value="${pmt.note||''}" placeholder="Note (optionnel)" style="flex:1;font-size:12px;padding:4px 6px;min-width:80px" onchange="setPmtNote('${cp.id}',${i},this.value)">
-              <button class="btn btn-sm btn-danger" onclick="deleteEcheance('${cp.id}',${i})" title="Supprimer"><i class="ti ti-x"></i></button>
+              <button class="btn btn-sm btn-danger" onclick="deleteEcheance('${cp.id}',${i})"><i class="ti ti-x"></i></button>
             </div>`;
           });
-          html+=`</div>`;
-        }else{
-          html+=`<div class="notice">Aucune échéance. Cliquez "+ Échéance" pour en ajouter.</div>`;
         }
         html+=`</div>`;
       });
@@ -757,48 +878,78 @@ function renderCreditPurchases(){
 
 window.showNewPurchaseModal=function(studentId,studentName){
   const selOptions=students.map(s=>`<option value="${s.id}"${s.id===studentId?' selected':''}>${s.name}</option>`).join('');
-  document.getElementById('purchaseModalContent').innerHTML=`
-    <div style="display:flex;flex-direction:column;gap:12px">
-      <div class="field"><label>Élève</label><select id="pmStudentId">${selOptions}</select></div>
-      <div class="field"><label>Référence (ex: Trimestre automne 2025)</label><input type="text" id="pmRef" placeholder="Référence de l'achat"></div>
-      <div class="field"><label>Date d'achat</label><input type="date" id="pmDate" value="${today()}" style="width:auto"></div>
-      <div class="field"><label>Nombre de crédits achetés</label><input type="number" id="pmCredits" value="10" min="1" style="width:100px"></div>
-      <div style="display:flex;gap:8px;margin-top:.5rem">
+  document.getElementById('genericModalTitle').textContent='Nouvel achat de crédits';
+  document.getElementById('genericModalContent').innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:12px;font-size:13px">
+      <div class="field"><label>Élève</label><select id="pmStudentId" style="width:100%">${selOptions}</select></div>
+      <div class="field"><label>Référence</label><input type="text" id="pmRef" placeholder="ex: Trimestre automne 2025" style="width:100%"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div class="field"><label>Date d'achat</label><input type="date" id="pmDate" value="${today()}" style="width:auto"></div>
+        <div class="field"><label>Nb de crédits</label><input type="number" id="pmCredits" value="10" min="1" style="width:80px" oninput="updatePmCalc()"></div>
+        <div class="field"><label>Montant total (€)</label><input type="number" id="pmTotal" value="90" min="0" style="width:90px" oninput="updatePmCalc()"></div>
+      </div>
+      <div class="field"><label>Nb d'échéances</label>
+        <div style="display:flex;gap:6px;margin-top:4px">
+          ${[1,2,3,4,5].map(n=>`<button class="nb-btn${n===3?' selected':''}" onclick="selectNbEch(${n})" id="nbBtn${n}">${n}</button>`).join('')}
+        </div>
+      </div>
+      <div style="background:var(--bg2);border-radius:var(--radius);padding:8px 12px;font-size:12px;color:var(--text2)" id="pmCalcInfo">3 échéances de <strong style="color:var(--text)">30 €</strong> seront créées automatiquement.</div>
+      <div style="display:flex;gap:8px;margin-top:4px">
         <button class="btn btn-primary" onclick="savePurchase()" style="flex:1">Enregistrer</button>
-        <button class="btn" onclick="closePurchaseModal()">Annuler</button>
+        <button class="btn" onclick="closeGenericModal()">Annuler</button>
       </div>
     </div>`;
-  document.getElementById('purchaseModal').classList.add('open');
+  window._selectedNbEch=3;
+  document.getElementById('genericModal').classList.add('open');
 };
-window.closePurchaseModal=function(){document.getElementById('purchaseModal').classList.remove('open');};
+
+window.selectNbEch=function(n){
+  window._selectedNbEch=n;
+  [1,2,3,4,5].forEach(i=>{
+    const btn=document.getElementById('nbBtn'+i);
+    if(btn)btn.classList.toggle('selected',i===n);
+  });
+  updatePmCalc();
+};
+
+window.updatePmCalc=function(){
+  const total=parseFloat(document.getElementById('pmTotal')?.value)||0;
+  const nb=window._selectedNbEch||1;
+  const perEch=(total/nb).toFixed(0);
+  const el=document.getElementById('pmCalcInfo');
+  if(el)el.innerHTML=`${nb} échéance(s) de <strong style="color:var(--text)">${perEch} €</strong> seront créées automatiquement.`;
+};
 
 window.savePurchase=async function(){
   const studentId=document.getElementById('pmStudentId').value;
   const reference=document.getElementById('pmRef').value.trim()||'Achat';
   const purchaseDate=document.getElementById('pmDate').value;
   const creditsBought=parseInt(document.getElementById('pmCredits').value)||0;
-  if(!studentId||!creditsBought)return;
+  const totalAmount=parseFloat(document.getElementById('pmTotal').value)||0;
+  const nbEch=window._selectedNbEch||1;
+  if(!studentId||!creditsBought){showToast("Remplissez tous les champs");return;}
   const st=students.find(x=>x.id===studentId);if(!st)return;
-  const r=await fsAdd("creditPurchases",{studentId,reference,purchaseDate,creditsBought,payments:[]});
+  const perEch=parseFloat((totalAmount/nbEch).toFixed(2));
+  const payments=Array.from({length:nbEch},()=>({status:'pending',date:'',amount:perEch,note:''}));
+  const r=await fsAdd("creditPurchases",{studentId,reference,purchaseDate,creditsBought,totalAmount,payments});
   creditPurchases.unshift(r);
   const newCredits=st.credits+creditsBought;
   await fsUpdate("students",studentId,{credits:newCredits});st.credits=newCredits;
-  closePurchaseModal();renderCreditPurchases();renderStudents();populateStudentSelect();
+  closeGenericModal();renderCreditPurchases();renderStudents();populateStudentSelect();
   showToast(`${creditsBought} crédits ajoutés à ${st.name}`);
 };
 
 window.deletePurchase=async function(cpId,studentId,creditsBought){
-  if(!confirm("Supprimer cet achat ? Les crédits seront retirés du solde de l'élève."))return;
+  if(!confirm("Supprimer cet achat ? Les crédits seront retirés du solde."))return;
   await fsDelete("creditPurchases",cpId);
   creditPurchases=creditPurchases.filter(x=>x.id!==cpId);
   const st=students.find(x=>x.id===studentId);
   if(st){const nc=Math.max(0,st.credits-creditsBought);await fsUpdate("students",studentId,{credits:nc});st.credits=nc;}
   renderCreditPurchases();renderStudents();showToast("Achat supprimé");
 };
-
 window.addEcheance=async function(cpId){
   const cp=creditPurchases.find(x=>x.id===cpId);if(!cp)return;
-  const pmts=[...(cp.payments||[]),{status:'pending',date:'',note:''}];
+  const pmts=[...(cp.payments||[]),{status:'pending',date:'',amount:0,note:''}];
   await fsUpdate("creditPurchases",cpId,{payments:pmts});cp.payments=pmts;renderCreditPurchases();
 };
 window.deleteEcheance=async function(cpId,idx){
@@ -818,6 +969,12 @@ window.setPmtDate=async function(cpId,idx,val){
   pmts[idx]={...pmts[idx],date:val};
   await fsUpdate("creditPurchases",cpId,{payments:pmts});cp.payments=pmts;
 };
+window.setPmtAmount=async function(cpId,idx,val){
+  const cp=creditPurchases.find(x=>x.id===cpId);if(!cp)return;
+  const pmts=[...cp.payments];if(!pmts[idx])return;
+  pmts[idx]={...pmts[idx],amount:parseFloat(val)||0};
+  await fsUpdate("creditPurchases",cpId,{payments:pmts});cp.payments=pmts;
+};
 window.setPmtNote=async function(cpId,idx,val){
   const cp=creditPurchases.find(x=>x.id===cpId);if(!cp)return;
   const pmts=[...cp.payments];if(!pmts[idx])return;
@@ -825,62 +982,93 @@ window.setPmtNote=async function(cpId,idx,val){
   await fsUpdate("creditPurchases",cpId,{payments:pmts});cp.payments=pmts;
 };
 
-// ── Payment alerts (student side) ─────────────────────────
-function renderPaymentAlerts(studentId){
-  const zone=document.getElementById('paymentAlertZone');
-  if(!studentId){zone.innerHTML='';return;}
-  const purchases=creditPurchases.filter(cp=>cp.studentId===studentId);
-  const now=new Date();
-  const soonLimit=new Date(now.getTime()+UPCOMING_DAYS*24*3600000);
-  let overdueItems=[],upcomingItems=[];
-  purchases.forEach(cp=>{
-    (cp.payments||[]).forEach(pmt=>{
-      if(!pmt||pmt.status==='paid')return;
-      if(!pmt.date)return;
-      const due=new Date(pmt.date);due.setHours(23,59,59);
-      if(due<now){
-        overdueItems.push({cp,pmt,due});
-      }else if(due<=soonLimit){
-        upcomingItems.push({cp,pmt,due});
-      }
-    });
-  });
-  let html='';
-  if(overdueItems.length){
-    html+=`<div class="payment-alert overdue"><i class="ti ti-alert-circle"></i><div>
-      <strong>Paiement(s) en retard</strong><br>
-      ${overdueItems.map(x=>`${x.cp.reference||'Achat'} — échéance du ${formatDateFr(x.pmt.date)}${x.pmt.note?' ('+x.pmt.note+')':''}`).join('<br>')}
-      <br><span style="font-size:11px">Merci de régulariser auprès de votre professeur.</span>
-    </div></div>`;
-  }
-  if(upcomingItems.length){
-    html+=`<div class="payment-alert upcoming"><i class="ti ti-bell"></i><div>
-      <strong>Paiement(s) à venir</strong><br>
-      ${upcomingItems.map(x=>`${x.cp.reference||'Achat'} — échéance le ${formatDateFr(x.pmt.date)}${x.pmt.note?' ('+x.pmt.note+')':''}`).join('<br>')}
-    </div></div>`;
-  }
-  zone.innerHTML=html;
-}
-
-// ── Student view ───────────────────────────────────────────
+// ── STUDENT VIEW ─────────────────────────────────────────────
 function populateStudentSelect(){
   const sel=document.getElementById('studentSelect');
   const cur=sel.value;
   sel.innerHTML='<option value="">-- Choisir mon nom --</option>'+students.map(s=>`<option value="${s.id}"${s.id===cur?' selected':''}>${s.name}</option>`).join('');
 }
+
+function renderHeroBanner(st){
+  const s=studentStats(st.id);
+  const allSlots=slots.filter(sl=>!sl.archived&&!sl.closed);
+  const myBookings=bookings.filter(b=>b.studentId===st.id&&b.status==='confirmed');
+  const futureBooked=myBookings.map(b=>slots.find(sl=>sl.id===b.slotId)).filter(sl=>sl&&sl.date>=today()).sort((a,b)=>a.date.localeCompare(b.date));
+  const next=futureBooked[0];
+  document.getElementById('heroBanner').innerHTML=`
+    <div class="hero-banner">
+      <div class="hero-top">
+        <div>
+          <div class="hero-greeting">Ateliers céramique de Virginie</div>
+          <div class="hero-name">Bonjour, ${st.name.split(' ')[0]} !</div>
+        </div>
+        <div style="text-align:right">
+          <div class="hero-credits-val">${s.remaining}</div>
+          <div class="hero-credits-lbl">crédit(s)</div>
+        </div>
+      </div>
+      ${next?`<div class="next-session">
+        <div class="next-session-lbl"><i class="ti ti-calendar" aria-hidden="true"></i> Prochaine séance réservée</div>
+        <div class="next-session-date">${formatFull(parseDate(next.date))} — ${next.time}</div>
+        <div class="next-session-status">${next.confirmed?'<i class="ti ti-circle-check"></i> Cours confirmé':'<i class="ti ti-clock"></i> En attente de confirmation'}</div>
+      </div>`:`<div class="next-session" style="color:#9FE1CB;font-size:12px"><i class="ti ti-calendar-off" aria-hidden="true"></i> Aucune séance réservée prochainement</div>`}
+    </div>
+    <div class="stats-row">
+      <div class="stat-box"><span class="stat-val">${s.totalBought}</span><span class="stat-lbl">crédits achetés</span></div>
+      <div class="stat-box"><span class="stat-val">${s.used}</span><span class="stat-lbl">séances réservées</span></div>
+      <div class="stat-box"><span class="stat-val" style="color:${s.remaining<2?'var(--red-text)':'var(--teal-mid)'}">${s.remaining}</span><span class="stat-lbl">crédits restants</span></div>
+    </div>`;
+}
+
+function renderPaymentAlerts(studentId){
+  const zone=document.getElementById('paymentAlertZone');
+  if(!studentId){zone.innerHTML='';return;}
+  const purchases=creditPurchases.filter(cp=>cp.studentId===studentId);
+  const now=new Date();
+  let overdueItems=[];
+  purchases.forEach(cp=>{
+    (cp.payments||[]).forEach(pmt=>{
+      if(!pmt||pmt.status==='paid'||!pmt.date)return;
+      const due=new Date(pmt.date+'T23:59:59');
+      if(due<now) overdueItems.push({cp,pmt});
+    });
+  });
+  if(!overdueItems.length){zone.innerHTML='';return;}
+  const items=overdueItems.map(x=>`<li>${x.cp.reference||'Achat'} — échéance du ${formatDateFr(x.pmt.date)}${x.pmt.amount?` (${parseFloat(x.pmt.amount).toFixed(0)} €)`:''}</li>`).join('');
+  zone.innerHTML=`<div class="payment-alert">
+    <i class="ti ti-alert-circle" style="font-size:20px;flex-shrink:0;margin-top:1px" aria-hidden="true"></i>
+    <div>
+      <strong>Un paiement est en attente</strong><br>
+      <ul style="margin:.4rem 0 .4rem 1rem;font-size:11px">${items}</ul>
+      Merci de contacter votre professeur pour régulariser votre situation.
+    </div>
+  </div>`;
+}
+
 window.onStudentChange=function(){
   const studentId=getSelectedStudentId();
   const st=students.find(x=>x.id===studentId);
-  const credDisp=document.getElementById('creditDisplay');
-  const credCount=document.getElementById('creditCount');
-  if(st){credDisp.style.display='block';credCount.textContent=st.credits;credCount.className='credit-badge'+(st.credits<2?' low':'');}
-  else{credDisp.style.display='none';}
+  if(st){renderHeroBanner(st);}
+  else{
+    document.getElementById('heroBanner').innerHTML=`<div style="background:var(--bg2);border-radius:var(--radius-lg);padding:14px;margin-bottom:10px"><div style="font-size:12px;color:var(--text2);margin-bottom:6px">Je suis :</div><select id="studentSelect" onchange="onStudentChange()" style="width:100%"><option value="">-- Choisir mon nom --</option>${students.map(s=>`<option value="${s.id}">${s.name}</option>`).join('')}</select></div>`;
+  }
+  document.getElementById('studentStatsRow').style.display=st?'block':'none';
   renderPaymentAlerts(studentId);
   renderStudentCalendar();
 };
-function renderStudentCalendar(){buildCalendar('studentCalendar','openStudentModal',getSelectedStudentId());}
 
-// ── Student modal ──────────────────────────────────────────
+function renderStudentCalendar(){
+  const studentId=getSelectedStudentId();
+  const el=document.getElementById('studentCalendar');
+  const activePeriod=periods.find(p=>p.id===activePeriodId&&!p.archived);
+  if(!activePeriod){
+      el.innerHTML='<div class="empty">Aucune période active. Contactez votre professeur.</div>';
+    return;
+  }
+  const pSlots=slots.filter(s=>s.periodId===activePeriod.id&&!s.archived);
+  el.innerHTML=buildCalendarHtml(activePeriod,pSlots,activePeriod.exclusions||[],'openStudentModal',studentId);
+}
+
 window.openStudentModal=async function(slotId){
   const slot=slots.find(x=>x.id===slotId);if(!slot)return;
   const studentId=getSelectedStudentId();
@@ -891,11 +1079,17 @@ window.openStudentModal=async function(slotId){
   const taken=slotBk.length,isFull=taken>=slot.maxPlaces;
   const myBooking=st&&slotBk.find(b=>b.studentId===studentId);
   const hasCancelReq=st&&cancelRequests.some(r=>r.slotId===slotId&&r.studentId===studentId&&r.status==='pending');
-  const status=slot.confirmed?'<span class="badge badge-confirmed"><i class="ti ti-check"></i> Cours confirmé</span>':slot.closed?'<span class="badge badge-closed">Fermé</span>':myBooking&&hasCancelReq?'<span class="badge badge-pending">Annulation en attente</span>':myBooking?'<span class="badge badge-booked">Vous êtes inscrit(e)</span>':isFull?'<span class="badge badge-full">Complet</span>':'<span class="badge badge-open">Disponible</span>';
+  let status;
+  if(slot.confirmed)status='<span class="badge badge-confirmed"><i class="ti ti-check"></i> Cours confirmé</span>';
+  else if(slot.closed)status='<span class="badge badge-closed">Fermé</span>';
+  else if(myBooking&&hasCancelReq)status='<span class="badge badge-pending">Annulation en attente</span>';
+  else if(myBooking)status='<span class="badge badge-booked">Vous êtes inscrit(e)</span>';
+  else if(isFull)status='<span class="badge badge-full">Complet</span>';
+  else status='<span class="badge badge-available">Disponible</span>';
   let html=`<div class="modal-row"><span>Statut</span>${status}</div>`;
   html+=`<div class="modal-row"><span>Inscrits</span><span>${taken}/${slot.maxPlaces}</span></div>`;
   if(slot.confirmed){html+=`<div class="confirmed-banner"><i class="ti ti-circle-check"></i> Ce cours est confirmé !</div>`;}
-  else{html+=`<div class="not-confirmed-banner"><i class="ti ti-info-circle"></i> Ce cours sera confirmé dès 3 inscrits.</div>`;}
+  else{html+=`<div class="not-confirmed-banner"><i class="ti ti-info-circle"></i> Ce cours sera confirmé dès ${AUTO_CONFIRM_COUNT} inscrits.</div>`;}
   if(st){
     if(myBooking&&!hasCancelReq){
       const hours=hoursUntil(slot.date,slot.time);
@@ -905,7 +1099,7 @@ window.openStudentModal=async function(slotId){
       html+=`<div class="notice" style="margin-top:.75rem">Votre demande d'annulation est en attente de validation.</div>`;
     }else if(!myBooking&&!isFull&&!slot.closed){
       if(st.credits>0){html+=`<div style="margin-top:1rem"><button class="btn btn-primary" style="width:100%" onclick="bookSlot('${slotId}')"><i class="ti ti-calendar-plus"></i> S'inscrire à ce cours</button></div>`;}
-      else{html+=`<div class="notice-warning" style="margin-top:.75rem"><i class="ti ti-alert-triangle"></i> Vous n'avez plus de crédits. Contactez votre professeur.</div>`;}
+      else{html+=`<div class="notice-danger" style="margin-top:.75rem"><i class="ti ti-alert-triangle"></i> Vous n'avez plus de crédits. Contactez votre professeur.</div>`;}
     }
   }else{
     html+=`<div class="notice" style="margin-top:.75rem">Sélectionnez votre nom pour vous inscrire.</div>`;
@@ -914,6 +1108,8 @@ window.openStudentModal=async function(slotId){
   document.getElementById('slotModalStudent').classList.add('open');
 };
 window.closeModalStudent=function(){document.getElementById('slotModalStudent').classList.remove('open');};
+window.closeGenericModal=function(){document.getElementById('genericModal').classList.remove('open');};
+
 window.bookSlot=async function(slotId){
   const studentId=getSelectedStudentId();if(!studentId)return;
   const st=students.find(x=>x.id===studentId);if(!st||st.credits<=0)return;
@@ -929,23 +1125,17 @@ window.bookSlot=async function(slotId){
   if(newCount>=AUTO_CONFIRM_COUNT&&!slot.confirmed){await fsUpdate("slots",slotId,{confirmed:true});slot.confirmed=true;}
   onStudentChange();closeModalStudent();showToast("Inscription confirmée !");
 };
+
 window.requestCancel=async function(bookingId,slotId){
   const studentId=getSelectedStudentId();if(!studentId)return;
   const r=await fsAdd("cancelRequests",{bookingId,slotId,studentId,status:'pending'});
   cancelRequests.push(r);closeModalStudent();renderStudentCalendar();showToast("Demande d'annulation envoyée !");
 };
 
-// ── Render admin ───────────────────────────────────────────
 function renderAdmin(){
   if(!isAdmin)return;
-  const tsEl=document.getElementById('trimStart');
-  const teEl=document.getElementById('trimEnd');
-  const mpEl=document.getElementById('maxPlaces');
-  if(tsEl)tsEl.value=settings.trimStart||'2025-09-01';
-  if(teEl)teEl.value=settings.trimEnd||'2025-12-20';
-  if(mpEl)mpEl.value=settings.maxPlaces||8;
-  renderExclusions();
-  buildCalendar('adminCalendar','openAdminModal',null);
+  renderPeriodList();
+  renderActivePeriodPlanning();
   renderStudents();
   renderCancelPendingList();
 }
