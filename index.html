@@ -173,6 +173,7 @@ input:focus,select:focus{border-color:var(--text)}
       <div class="legend-item"><div class="legend-dot" style="background:var(--green-dark);border:.5px solid #639922"></div> Cours confirmé</div>
       <div class="legend-item"><div class="legend-dot" style="background:var(--gray-light)"></div> Complet / Fermé</div>
     </div>
+    <div id="periodSelectorZone" style="margin-bottom:1rem"></div>
     <div id="studentCalendar"><div class="loading"><div class="spinner"></div> Chargement...</div></div>
     <div class="notice" style="margin-top:1rem"><i class="ti ti-info-circle"></i> Pour toute question, contactez votre professeur.</div>
   </div>
@@ -1081,14 +1082,38 @@ window.onStudentChange=function(){
   renderStudentCalendar();
 };
 
+function renderPeriodSelector(){
+  const zone=document.getElementById('periodSelectorZone');
+  if(!zone)return;
+  const visiblePeriods=periods.filter(p=>!p.archived);
+  if(visiblePeriods.length<=1){zone.innerHTML='';return;}
+  const buttons=visiblePeriods.map(p=>{
+    const isActive=p.id===activePeriodId;
+    const status=getPeriodStatus(p);
+    const statusDot=status==='active'?'🟢':status==='future'?'🔵':'⚪';
+    return`<button class="btn btn-sm${isActive?' btn-primary':''}" onclick="switchStudentPeriod('${p.id}')" style="white-space:nowrap">${statusDot} ${p.name}</button>`;
+  }).join('');
+  zone.innerHTML=`<div style="background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:10px 14px">
+    <div style="font-size:11px;color:var(--text2);margin-bottom:8px;font-weight:500;text-transform:uppercase;letter-spacing:.05em"><i class="ti ti-calendar" aria-hidden="true"></i> Trimestre affiché</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">${buttons}</div>
+  </div>`;
+}
+
+window.switchStudentPeriod=function(id){
+  activePeriodId=id;
+  renderPeriodSelector();
+  renderStudentCalendar();
+};
+
 function renderStudentCalendar(){
   const studentId=getSelectedStudentId();
   const el=document.getElementById('studentCalendar');
   const activePeriod=periods.find(p=>p.id===activePeriodId&&!p.archived);
   if(!activePeriod){
-      el.innerHTML='<div class="empty">Aucune période active. Contactez votre professeur.</div>';
+    el.innerHTML='<div class="empty">Aucune période active. Contactez votre professeur.</div>';
     return;
   }
+  renderPeriodSelector();
   const pSlots=slots.filter(s=>s.periodId===activePeriod.id&&!s.archived);
   el.innerHTML=buildCalendarHtml(activePeriod,pSlots,activePeriod.exclusions||[],'openStudentModal',studentId);
 }
