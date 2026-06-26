@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ateliers Céramique — Réservations</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script>emailjs.init("1rA50A6hsS5rp5p5b");</script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -667,11 +665,19 @@ function buildCalendarHtml(period,pSlots,excl,clickFn,studentId){
         const hasCancelReq=studentId&&cancelRequests.some(r=>r.slotId===slot.id&&r.studentId===studentId&&r.status==='pending');
         let chipCls;
         if(slot.closed||slot.archived)chipCls='chip-closed';
-        else if(slot.confirmed)chipCls='chip-confirmed';
-        else if(isBooked&&hasCancelReq)chipCls='chip-cancel';
-        else if(isBooked)chipCls='chip-booked';
-        else if(isFull)chipCls='chip-full';
-        else chipCls='chip-available';
+        else if(!studentId){
+          // Vue générale (sans élève) : vert foncé si confirmé, sinon couleurs normales
+          if(slot.confirmed)chipCls='chip-confirmed';
+          else if(isFull)chipCls='chip-full';
+          else chipCls='chip-available';
+        } else {
+          // Vue élève : vert foncé seulement si inscrit ET confirmé
+          if(isBooked&&hasCancelReq)chipCls='chip-cancel';
+          else if(isBooked&&slot.confirmed)chipCls='chip-confirmed';
+          else if(isBooked)chipCls='chip-booked';
+          else if(isFull)chipCls='chip-full';
+          else chipCls='chip-available';
+        }
         const lbl=slot.label.split(' ')[1];
         inner+=`<span class="slot-chip ${chipCls}">${lbl}<br>${taken}/${slot.maxPlaces}</span>`;
       }
