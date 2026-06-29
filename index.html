@@ -157,25 +157,121 @@ input:focus,select:focus{border-color:var(--text)}
 
   <!-- TAB STUDENT -->
   <div id="tab-student">
-    <div id="paymentAlertZone"></div>
-    <div id="heroBanner">
-      <div style="background:var(--bg2);border-radius:var(--radius-lg);padding:14px;margin-bottom:10px">
-        <div style="font-size:12px;color:var(--text2);margin-bottom:6px">Je suis :</div>
-        <select id="studentSelect" onchange="onStudentChange()" style="width:100%">
+
+    <!-- VUE ACCUEIL (quand pas d'élève sélectionné) -->
+    <div id="homeView">
+
+      <!-- HERO SVG -->
+      <div style="background:var(--teal-dark);border-radius:var(--radius-lg);overflow:hidden;position:relative;margin-bottom:12px;padding:24px 20px">
+        <svg style="position:absolute;top:-10px;right:-10px;opacity:.08" width="200" height="200" viewBox="0 0 200 200" role="presentation">
+          <circle cx="100" cy="100" r="90" fill="none" stroke="white" stroke-width="0.5"/>
+          <circle cx="100" cy="100" r="65" fill="none" stroke="white" stroke-width="0.5"/>
+          <circle cx="100" cy="100" r="40" fill="white"/>
+          <ellipse cx="60" cy="160" rx="30" ry="10" fill="white" opacity=".2"/>
+          <path d="M45 80 Q55 40 75 35 Q95 30 100 60 Q105 30 125 35 Q145 40 155 80 Q145 110 100 115 Q55 110 45 80Z" fill="white" opacity=".15"/>
+        </svg>
+        <div style="position:relative">
+          <div style="font-size:10px;color:#9FE1CB;text-transform:uppercase;letter-spacing:.08em;font-weight:500;margin-bottom:6px"><i class="ti ti-plant-2" aria-hidden="true"></i> Ateliers céramique</div>
+          <div style="font-size:22px;font-weight:500;color:#E1F5EE;line-height:1.25;margin-bottom:6px">Bienvenue dans<br>l'atelier de Virginie</div>
+          <div style="font-size:12px;color:#9FE1CB">Réservez vos séances, gérez vos crédits en toute simplicité.</div>
+        </div>
+      </div>
+
+      <!-- ACCES PLANNING -->
+      <div style="background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px">
+        <div style="font-size:13px;font-weight:500;color:var(--teal-dark);margin-bottom:10px;display:flex;align-items:center;gap:6px"><i class="ti ti-calendar" aria-hidden="true"></i> Accéder à mon planning</div>
+        <select id="studentSelect" onchange="onStudentChange()" style="width:100%;margin-bottom:8px;border-color:#9FE1CB">
           <option value="">-- Choisir mon nom --</option>
         </select>
+        <div style="font-size:11px;color:var(--text2);text-align:center">Votre professeur vous a fourni un lien personnel — utilisez-le pour accéder directement à votre planning.</div>
       </div>
+
+      <!-- DIVIDER -->
+      <div style="display:flex;align-items:center;gap:10px;margin:4px 0 12px"><div style="flex:1;height:.5px;background:var(--border)"></div><div style="font-size:10px;color:var(--text2);font-weight:500;white-space:nowrap">Comment ça marche</div><div style="flex:1;height:.5px;background:var(--border)"></div></div>
+
+      <!-- STEPS -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">
+        <div style="background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:12px;text-align:center">
+          <div style="width:26px;height:26px;border-radius:50%;background:var(--teal-dark);color:#E1F5EE;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;margin:0 auto 8px">1</div>
+          <div style="font-size:11px;font-weight:500;color:var(--text);margin-bottom:3px">Achetez des crédits</div>
+          <div style="font-size:10px;color:var(--text2);line-height:1.4">Choisissez votre formule et achetez vos crédits directement auprès de votre professeur</div>
+        </div>
+        <div style="background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:12px;text-align:center">
+          <div style="width:26px;height:26px;border-radius:50%;background:var(--teal-dark);color:#E1F5EE;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;margin:0 auto 8px">2</div>
+          <div style="font-size:11px;font-weight:500;color:var(--text);margin-bottom:3px">Réservez</div>
+          <div style="font-size:10px;color:var(--text2);line-height:1.4">Choisissez un créneau dans votre planning</div>
+        </div>
+        <div style="background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:12px;text-align:center">
+          <div style="width:26px;height:26px;border-radius:50%;background:var(--teal-dark);color:#E1F5EE;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;margin:0 auto 8px">3</div>
+          <div style="font-size:11px;font-weight:500;color:var(--text);margin-bottom:3px">À l'atelier !</div>
+          <div style="font-size:10px;color:var(--text2);line-height:1.4">Le cours est confirmé dès 3 inscrits</div>
+        </div>
+      </div>
+
+      <!-- DIVIDER -->
+      <div style="display:flex;align-items:center;gap:10px;margin:4px 0 12px"><div style="flex:1;height:.5px;background:var(--border)"></div><div style="font-size:10px;color:var(--text2);font-weight:500;white-space:nowrap">Tarifs</div><div style="flex:1;height:.5px;background:var(--border)"></div></div>
+
+      <!-- TARIFS -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+        <div style="background:var(--bg);border:1.5px solid var(--teal-mid);border-radius:var(--radius-lg);padding:14px">
+          <div style="font-size:9px;font-weight:500;color:var(--teal-dark);background:var(--teal-light);border-radius:20px;padding:2px 8px;display:inline-block;margin-bottom:8px"><i class="ti ti-star" aria-hidden="true"></i> Meilleur tarif</div>
+          <div style="font-size:24px;font-weight:500;color:var(--teal-dark)">35 €<span style="font-size:11px;color:var(--text2);margin-left:2px">/ cours</span></div>
+          <div style="font-size:11px;color:var(--text2);margin-top:3px;margin-bottom:8px">Pack trimestriel<br>À partir de 5 crédits</div>
+          <div style="font-size:10px;color:var(--text2);line-height:1.5">Valable sur le trimestre · Suivi régulier recommandé</div>
+        </div>
+        <div style="background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:14px">
+          <div style="height:22px"></div>
+          <div style="font-size:24px;font-weight:500;color:var(--text)">40 €<span style="font-size:11px;color:var(--text2);margin-left:2px">/ cours</span></div>
+          <div style="font-size:11px;color:var(--text2);margin-top:3px;margin-bottom:8px">À l'unité<br>1 à 4 crédits au choix</div>
+          <div style="font-size:10px;color:var(--text2);line-height:1.5">Sans engagement · Idéal pour essayer</div>
+        </div>
+      </div>
+
+      <!-- DIVIDER -->
+      <div style="display:flex;align-items:center;gap:10px;margin:4px 0 12px"><div style="flex:1;height:.5px;background:var(--border)"></div><div style="font-size:10px;color:var(--text2);font-weight:500;white-space:nowrap">Infos pratiques</div><div style="flex:1;height:.5px;background:var(--border)"></div></div>
+
+      <!-- INFOS -->
+      <div style="background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:1rem">
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px">
+          <i class="ti ti-map-pin" style="color:var(--teal-mid);font-size:16px;flex-shrink:0;margin-top:2px" aria-hidden="true"></i>
+          <div>
+            <div style="font-size:12px;font-weight:500;color:var(--text)">Ateliers Jouret — Roubaix</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:2px">Votre professeur vous communiquera l'adresse exacte</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px">
+          <i class="ti ti-clock" style="color:var(--teal-mid);font-size:16px;flex-shrink:0;margin-top:2px" aria-hidden="true"></i>
+          <div>
+            <div style="font-size:12px;font-weight:500;color:var(--text)">Vendredi soir à 18h · Samedi matin à 10h</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <i class="ti ti-calendar-x" style="color:var(--teal-mid);font-size:16px;flex-shrink:0;margin-top:2px" aria-hidden="true"></i>
+          <div>
+            <div style="font-size:12px;font-weight:500;color:var(--text)">Annulation</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:2px">Possible jusqu'à 48h avant le cours depuis votre planning</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- fin homeView -->
+
+    <!-- VUE ELEVE (une fois sélectionné) -->
+    <div id="studentView" style="display:none">
+      <div id="paymentAlertZone"></div>
+      <div id="heroBanner"></div>
+      <div id="studentStatsRow"></div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--blue-light);border:.5px solid var(--blue-border)"></div> Disponible</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--teal-light);border:.5px solid var(--teal-border)"></div> Réservé</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green-dark);border:.5px solid #639922"></div> Cours confirmé</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--gray-light)"></div> Complet / Fermé</div>
+      </div>
+      <div id="periodSelectorZone" style="margin-bottom:1rem"></div>
+      <div id="studentCalendar"><div class="loading"><div class="spinner"></div> Chargement...</div></div>
+      <div class="notice" style="margin-top:1rem"><i class="ti ti-info-circle"></i> Pour toute question, contactez votre professeur.</div>
     </div>
-    <div id="studentStatsRow" style="display:none"></div>
-    <div class="legend">
-      <div class="legend-item"><div class="legend-dot" style="background:var(--blue-light);border:.5px solid var(--blue-border)"></div> Disponible</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--teal-light);border:.5px solid var(--teal-border)"></div> Réservé</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--green-dark);border:.5px solid #639922"></div> Cours confirmé</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--gray-light)"></div> Complet / Fermé</div>
-    </div>
-    <div id="periodSelectorZone" style="margin-bottom:1rem"></div>
-    <div id="studentCalendar"><div class="loading"><div class="spinner"></div> Chargement...</div></div>
-    <div class="notice" style="margin-top:1rem"><i class="ti ti-info-circle"></i> Pour toute question, contactez votre professeur.</div>
+
   </div>
 
   <!-- TAB ADMIN -->
@@ -411,9 +507,8 @@ function checkUrlParam(){
   const st=students.find(s=>slugify(s.name)===eleve.toLowerCase());
   if(st){
     _selectedStudentId=st.id;
-    // hide picker, show banner directly
-    document.getElementById('heroBanner').innerHTML='';
-    document.getElementById('studentPickerBlock')&&(document.getElementById('studentPickerBlock').style.display='none');
+    document.getElementById('homeView').style.display='none';
+    document.getElementById('studentView').style.display='block';
     renderHeroBanner(st);
     renderPaymentAlerts(st.id);
     renderStudentCalendar();
@@ -922,11 +1017,18 @@ function renderCreditPurchases(){
         const totalAmt=(cp.totalAmount||0);
         html+=`<div class="purchase-card">
           <div class="purchase-header">
-            <div>
-              <div style="font-weight:500;font-size:13px">${cp.reference||'Achat'}</div>
-              <div style="font-size:11px;color:var(--text2)">${formatDateFr(cp.purchaseDate)} · ${cp.creditsBought||0} crédits · <strong>${totalAmt} €</strong> · ${pmts.length} échéance(s) · ${paidCount} payée(s)</div>
+            <div style="flex:1;min-width:0">
+              <input type="text" value="${cp.reference||'Achat'}" style="font-weight:500;font-size:13px;width:100%;border:none;border-bottom:.5px solid var(--border);border-radius:0;padding:2px 0;background:transparent;margin-bottom:6px" onchange="setPurchaseRef('${cp.id}',this.value)" title="Référence">
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                <span style="font-size:11px;color:var(--text2)">${formatDateFr(cp.purchaseDate)}</span>
+                <span style="font-size:11px;color:var(--text2)">·</span>
+                <input type="number" value="${cp.creditsBought||0}" min="0" style="width:50px;font-size:11px;padding:2px 5px;border:.5px solid var(--border)" onchange="setPurchaseCredits('${cp.id}','${st.id}',${cp.creditsBought||0},this.value)" title="Crédits achetés"> <span style="font-size:11px;color:var(--text2)">crédits</span>
+                <span style="font-size:11px;color:var(--text2)">·</span>
+                <input type="number" value="${totalAmt}" min="0" style="width:65px;font-size:11px;padding:2px 5px;border:.5px solid var(--border)" onchange="setPurchaseTotal('${cp.id}',this.value)" title="Montant total €"> <span style="font-size:11px;color:var(--text2)">€</span>
+                <span style="font-size:11px;color:var(--text2)">· ${pmts.length} échéance(s) · ${paidCount} payée(s)</span>
+              </div>
             </div>
-            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-left:8px">
               <button class="btn btn-sm" onclick="addEcheance('${cp.id}')"><i class="ti ti-plus"></i> Échéance</button>
               <button class="btn btn-sm btn-danger" onclick="deletePurchase('${cp.id}','${st.id}',${cp.creditsBought||0})" title="Supprimer"><i class="ti ti-trash"></i></button>
             </div>
@@ -1031,6 +1133,30 @@ window.addEcheance=async function(cpId){
   const pmts=[...(cp.payments||[]),{status:'pending',date:'',amount:0,note:''}];
   await fsUpdate("creditPurchases",cpId,{payments:pmts});cp.payments=pmts;renderCreditPurchases();
 };
+window.setPurchaseRef=async function(cpId,val){
+  const cp=creditPurchases.find(x=>x.id===cpId);if(!cp)return;
+  await fsUpdate("creditPurchases",cpId,{reference:val});
+  cp.reference=val;showToast("Référence mise à jour");
+};
+window.setPurchaseCredits=async function(cpId,studentId,oldVal,newVal){
+  const cp=creditPurchases.find(x=>x.id===cpId);if(!cp)return;
+  const newCredits=parseInt(newVal)||0;
+  const diff=newCredits-(parseInt(oldVal)||0);
+  await fsUpdate("creditPurchases",cpId,{creditsBought:newCredits});
+  cp.creditsBought=newCredits;
+  const st=students.find(x=>x.id===studentId);
+  if(st&&diff!==0){
+    const nc=Math.max(0,st.credits+diff);
+    await fsUpdate("students",studentId,{credits:nc});
+    st.credits=nc;
+  }
+  renderCreditPurchases();renderStudents();showToast("Crédits mis à jour");
+};
+window.setPurchaseTotal=async function(cpId,val){
+  const cp=creditPurchases.find(x=>x.id===cpId);if(!cp)return;
+  await fsUpdate("creditPurchases",cpId,{totalAmount:parseFloat(val)||0});
+  cp.totalAmount=parseFloat(val)||0;showToast("Montant mis à jour");
+};
 window.deleteEcheance=async function(cpId,idx){
   const cp=creditPurchases.find(x=>x.id===cpId);if(!cp)return;
   const pmts=cp.payments.filter((_,i)=>i!==idx);
@@ -1064,6 +1190,7 @@ window.setPmtNote=async function(cpId,idx,val){
 // ── STUDENT VIEW ─────────────────────────────────────────────
 function populateStudentSelect(){
   const sel=document.getElementById('studentSelect');
+  if(!sel)return;
   const cur=sel.value;
   sel.innerHTML='<option value="">-- Choisir mon nom --</option>'+students.map(s=>`<option value="${s.id}"${s.id===cur?' selected':''}>${s.name}</option>`).join('');
 }
@@ -1128,13 +1255,17 @@ window.onStudentChange=function(){
   const sel=document.getElementById('studentSelect');
   _selectedStudentId=sel?sel.value||null:null;
   const st=students.find(x=>x.id===_selectedStudentId);
-  if(st){renderHeroBanner(st);}
-  else{
-    document.getElementById('heroBanner').innerHTML=`<div style="background:var(--bg2);border-radius:var(--radius-lg);padding:14px;margin-bottom:10px"><div style="font-size:12px;color:var(--text2);margin-bottom:6px">Je suis :</div><select id="studentSelect" onchange="onStudentChange()" style="width:100%"><option value="">-- Choisir mon nom --</option>${students.map(s=>`<option value="${s.id}">${s.name}</option>`).join('')}</select></div>`;
+  if(st){
+    document.getElementById('homeView').style.display='none';
+    document.getElementById('studentView').style.display='block';
+    renderHeroBanner(st);
+    renderPaymentAlerts(_selectedStudentId);
+    renderStudentCalendar();
+  } else {
+    document.getElementById('homeView').style.display='block';
+    document.getElementById('studentView').style.display='none';
+    populateStudentSelect();
   }
-  document.getElementById('studentStatsRow').style.display=st?'block':'none';
-  renderPaymentAlerts(_selectedStudentId);
-  renderStudentCalendar();
 };
 
 function renderPeriodSelector(){
