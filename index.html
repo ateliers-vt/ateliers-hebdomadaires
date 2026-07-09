@@ -193,8 +193,8 @@ input:focus,select:focus{border-color:var(--text)}
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">
         <div style="background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:12px;text-align:center">
           <div style="width:26px;height:26px;border-radius:50%;background:var(--teal-dark);color:#E1F5EE;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;margin:0 auto 8px">1</div>
-          <div style="font-size:11px;font-weight:500;color:var(--text);margin-bottom:3px">Ajoutez des crédits</div>
-          <div style="font-size:10px;color:var(--text2);line-height:1.4">Choisissez votre formule et achetez vos crédits directement auprès de votre professeur, qui ajoutera vos crédits à votre compte.</div>
+          <div style="font-size:11px;font-weight:500;color:var(--text);margin-bottom:3px">Achetez des crédits</div>
+          <div style="font-size:10px;color:var(--text2);line-height:1.4">Choisissez votre formule et achetez vos crédits directement auprès de votre professeur</div>
         </div>
         <div style="background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:12px;text-align:center">
           <div style="width:26px;height:26px;border-radius:50%;background:var(--teal-dark);color:#E1F5EE;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;margin:0 auto 8px">2</div>
@@ -217,13 +217,13 @@ input:focus,select:focus{border-color:var(--text)}
           <div style="font-size:9px;font-weight:500;color:var(--teal-dark);background:var(--teal-light);border-radius:20px;padding:2px 8px;display:inline-block;margin-bottom:8px"><i class="ti ti-star" aria-hidden="true"></i> Meilleur tarif</div>
           <div style="font-size:24px;font-weight:500;color:var(--teal-dark)">35 €<span style="font-size:11px;color:var(--text2);margin-left:2px">/ cours</span></div>
           <div style="font-size:11px;color:var(--text2);margin-top:3px;margin-bottom:8px">Pack trimestriel<br>À partir de 5 crédits</div>
-          <div style="font-size:10px;color:var(--text2);line-height:1.5">Valable sur le trimestre · Suivi régulier recommandé</div>
+          <div style="font-size:10px;color:var(--text2);line-height:1.5">Pour un suivi régulier · Valable sur le trimestre</div>
         </div>
         <div style="background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:14px">
           <div style="height:22px"></div>
           <div style="font-size:24px;font-weight:500;color:var(--text)">40 €<span style="font-size:11px;color:var(--text2);margin-left:2px">/ cours</span></div>
           <div style="font-size:11px;color:var(--text2);margin-top:3px;margin-bottom:8px">À l'unité<br>1 à 4 crédits au choix</div>
-          <div style="font-size:10px;color:var(--text2);line-height:1.5">Sans engagement · Idéal pour essayer</div>
+          <div style="font-size:10px;color:var(--text2);line-height:1.5">Nombre de cours libre — utilisable toute l'année<br>Sans engagement · Idéal pour essayer</div>
         </div>
       </div>
 
@@ -418,7 +418,7 @@ async function fsAdd(col,data){const r=await addDoc(collection(db,col),data);ret
 async function fsUpdate(col,id,data){await updateDoc(doc(db,col,id),data);}
 async function fsDelete(col,id){await deleteDoc(doc(db,col,id));}
 
-let periods=[],slots=[],students=[],bookings=[],cancelRequests=[],creditPurchases=[];
+let periods=[],slots=[],students=[],bookings=[],cancelRequests=[],creditPurchases=[],notifications=[];
 let isAdmin=false,activePeriodId=null;
 
 const MONTHS=["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
@@ -479,25 +479,28 @@ async function init(){
 async function loadAll(){
   // Chargement robuste : chaque collection est tentée individuellement
   async function safe(fn){try{return await fn();}catch(e){console.warn("Collection error:",e.code,e.message);return [];}}
-  const[pe,sl,st,bk,cr,cp]=await Promise.all([
+  const[pe,sl,st,bk,cr,cp,notifs]=await Promise.all([
     safe(()=>fsGetAll("periods")),
     safe(()=>fsGetAll("slots")),
     safe(()=>fsGetAll("students")),
     safe(()=>fsGetAll("bookings")),
     safe(()=>fsGetWhere("cancelRequests","status","==","pending")),
     safe(()=>fsGetAll("creditPurchases")),
+    safe(()=>fsGetAll("notifications")),
   ]);
   periods=(pe||[]).filter(p=>!p.archived).sort((a,b)=>a.startDate.localeCompare(b.startDate));
   slots=(sl||[]).filter(s=>!s.archived).sort((a,b)=>a.date.localeCompare(b.date));
   students=(st||[]).sort((a,b)=>a.name.localeCompare(b.name));
-  bookings=bk||[];cancelRequests=cr||[];creditPurchases=cp||[];
+  bookings=bk||[];cancelRequests=cr||[];creditPurchases=cp||[];notifications=notifs||[];
   setActivePeriod();
 }
 
 function setActivePeriod(){
   const t=today();
-  let active=periods.find(p=>p.startDate<=t&&p.endDate>=t);
-  if(!active&&periods.length)active=periods[periods.length-1];
+  // Préférer le trimestre à venir (le plus proche dans le futur)
+  let active=periods.find(p=>p.startDate>t); // prochain à venir
+  if(!active) active=periods.find(p=>p.startDate<=t&&p.endDate>=t); // en cours
+  if(!active&&periods.length) active=periods[periods.length-1]; // dernier par défaut
   activePeriodId=active?active.id:null;
 }
 
@@ -625,12 +628,33 @@ window.addExclusion=async function(periodId){
   const period=periods.find(p=>p.id===periodId);if(!period)return;
   const excl=[...(period.exclusions||[])];
   if(excl.includes(v))return;
+  // Check if slot has bookings
+  const existing=slots.find(s=>s.date===v&&s.periodId===periodId);
+  if(existing){
+    const slotBk=bookings.filter(b=>b.slotId===existing.id&&b.status==='confirmed');
+    if(slotBk.length>0){
+      const names=slotBk.map(b=>{const st=students.find(x=>x.id===b.studentId);return st?st.name:'?';}).join(', ');
+      const confirmed=confirm(`⚠️ Ce créneau a ${slotBk.length} élève(s) inscrit(s) : ${names}.\n\nEn confirmant, leurs crédits seront automatiquement restitués et ils verront une bannière d'alerte sur leur planning.`);
+      if(!confirmed)return;
+      // Auto-refund and notify
+      for(const b of slotBk){
+        await fsUpdate("bookings",b.id,{status:'cancelled'});
+        b.status='cancelled';
+        const st=students.find(x=>x.id===b.studentId);
+        if(st){await fsUpdate("students",st.id,{credits:st.credits+1});st.credits++;}
+      }
+      // Add notification for affected students
+      for(const b of slotBk){
+        await fsAdd("notifications",{studentId:b.studentId,type:'slot_cancelled',message:`Le cours du ${formatDateFr(v)} a été annulé. Votre crédit a été restitué.`,date:v,read:false,createdAt:new Date().toISOString()});
+      }
+    }
+    await fsDelete("slots",existing.id);
+    slots=slots.filter(s=>!(s.date===v&&s.periodId===periodId));
+  }
   excl.push(v);
   await fsUpdate("periods",periodId,{exclusions:excl});
   period.exclusions=excl;
-  const existing=slots.find(s=>s.date===v&&s.periodId===periodId);
-  if(existing){await fsDelete("slots",existing.id);slots=slots.filter(s=>!(s.date===v&&s.periodId===periodId));}
-  renderActivePeriodPlanning();showToast("Date exclue");
+  renderActivePeriodPlanning();renderStudentView();showToast("Date exclue, crédits restitués aux élèves concernés");
 };
 window.removeExclusion=async function(periodId,e){
   const period=periods.find(p=>p.id===periodId);if(!period)return;
@@ -830,7 +854,15 @@ window.adminConfirmSlot=async function(slotId){
 window.adminUnconfirmSlot=async function(slotId){
   await fsUpdate("slots",slotId,{confirmed:false});
   const slot=slots.find(x=>x.id===slotId);if(slot)slot.confirmed=false;
-  closeModal();renderActivePeriodPlanning();showToast("Confirmation retirée");
+  // Notifier les élèves inscrits
+  const slotBk=bookings.filter(b=>b.slotId===slotId&&b.status==='confirmed');
+  for(const b of slotBk){
+    await fsAdd("notifications",{studentId:b.studentId,type:'slot_unconfirmed',message:`Le cours du ${slot?formatDateFr(slot.date):''} n'est plus confirmé (moins de ${AUTO_CONFIRM_COUNT} inscrits).`,date:slot?slot.date:'',read:false,createdAt:new Date().toISOString()});
+  }
+  // Reload notifications for student view
+  const freshNotifs=await fsGetAll("notifications");
+  notifications=freshNotifs||[];
+  closeModal();renderAdmin();renderStudentView();showToast("Confirmation retirée, élèves notifiés");
 };
 window.adminCancelBooking=async function(bookingId,slotId){
   if(!confirm("Confirmer l'annulation administrative ?"))return;
@@ -1067,14 +1099,14 @@ window.showNewPurchaseModal=function(studentId,studentName){
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <div class="field"><label>Date d'achat</label><input type="date" id="pmDate" value="${today()}" style="width:auto"></div>
         <div class="field"><label>Nb de crédits</label><input type="number" id="pmCredits" value="10" min="1" style="width:80px" oninput="updatePmCalc()"></div>
-        <div class="field"><label>Montant total (€)</label><input type="number" id="pmTotal" value="90" min="0" style="width:90px" oninput="updatePmCalc()"></div>
+        <div class="field"><label>Montant total (€)</label><input type="number" id="pmTotal" value="350" min="0" style="width:90px" oninput="updatePmCalc()"></div>
       </div>
       <div class="field"><label>Nb d'échéances</label>
         <div style="display:flex;gap:6px;margin-top:4px">
           ${[1,2,3,4,5].map(n=>`<button class="nb-btn${n===3?' selected':''}" onclick="selectNbEch(${n})" id="nbBtn${n}">${n}</button>`).join('')}
         </div>
       </div>
-      <div style="background:var(--bg2);border-radius:var(--radius);padding:8px 12px;font-size:12px;color:var(--text2)" id="pmCalcInfo">3 échéances de <strong style="color:var(--text)">30 €</strong> seront créées automatiquement.</div>
+      <div style="background:var(--bg2);border-radius:var(--radius);padding:8px 12px;font-size:12px;color:var(--text2)" id="pmCalcInfo">3 échéances de <strong style="color:var(--text)">117 €</strong> seront créées automatiquement.</div>
       <div style="display:flex;gap:8px;margin-top:4px">
         <button class="btn btn-primary" onclick="savePurchase()" style="flex:1">Enregistrer</button>
         <button class="btn" onclick="closeGenericModal()">Annuler</button>
@@ -1141,10 +1173,19 @@ window.setPurchaseRef=async function(cpId,val){
 window.setPurchaseCredits=async function(cpId,studentId,oldVal,newVal){
   const cp=creditPurchases.find(x=>x.id===cpId);if(!cp)return;
   const newCredits=parseInt(newVal)||0;
-  const diff=newCredits-(parseInt(oldVal)||0);
+  const oldCredits=parseInt(oldVal)||0;
+  const st=students.find(x=>x.id===studentId);
+  // Vérification : total crédits achetés ne peut pas être inférieur aux réservations déjà faites
+  const usedBookings=bookings.filter(b=>b.studentId===studentId&&b.status==='confirmed').length;
+  const totalBoughtOthers=creditPurchases.filter(cp2=>cp2.studentId===studentId&&cp2.id!==cpId).reduce((s,cp2)=>s+(cp2.creditsBought||0),0);
+  const newTotal=totalBoughtOthers+newCredits;
+  if(newTotal<usedBookings){
+    showToast(`⚠️ Impossible : ${usedBookings} réservations déjà effectuées, le total de crédits achetés ne peut pas être inférieur.`);
+    renderCreditPurchases();return;
+  }
+  const diff=newCredits-oldCredits;
   await fsUpdate("creditPurchases",cpId,{creditsBought:newCredits});
   cp.creditsBought=newCredits;
-  const st=students.find(x=>x.id===studentId);
   if(st&&diff!==0){
     const nc=Math.max(0,st.credits+diff);
     await fsUpdate("students",studentId,{credits:nc});
@@ -1226,9 +1267,21 @@ function renderHeroBanner(st){
     </div>`;
 }
 
+function renderStudentView(){
+  if(!_selectedStudentId)return;
+  const st=students.find(x=>x.id===_selectedStudentId);
+  if(!st)return;
+  const sv=document.getElementById('studentView');
+  if(sv&&sv.style.display!=='none'){
+    renderHeroBanner(st);
+    renderPaymentAlerts(_selectedStudentId);
+    renderStudentCalendar();
+  }
+}
+
 function renderPaymentAlerts(studentId){
   const zone=document.getElementById('paymentAlertZone');
-  if(!studentId){zone.innerHTML='';return;}
+  if(!zone||!studentId){if(zone)zone.innerHTML='';return;}
   const purchases=creditPurchases.filter(cp=>cp.studentId===studentId);
   const now=new Date();
   let overdueItems=[];
@@ -1239,17 +1292,29 @@ function renderPaymentAlerts(studentId){
       if(due<now) overdueItems.push({cp,pmt});
     });
   });
-  if(!overdueItems.length){zone.innerHTML='';return;}
-  const items=overdueItems.map(x=>`<li>${x.cp.reference||'Achat'} — échéance du ${formatDateFr(x.pmt.date)}${x.pmt.amount?` (${parseFloat(x.pmt.amount).toFixed(0)} €)`:''}</li>`).join('');
-  zone.innerHTML=`<div class="payment-alert">
-    <i class="ti ti-alert-circle" style="font-size:20px;flex-shrink:0;margin-top:1px" aria-hidden="true"></i>
-    <div>
-      <strong>Un paiement est en attente</strong><br>
-      <ul style="margin:.4rem 0 .4rem 1rem;font-size:11px">${items}</ul>
-      Merci de contacter votre professeur pour régulariser votre situation.
-    </div>
-  </div>`;
+  const myNotifs=(notifications||[]).filter(n=>n.studentId===studentId&&!n.read);
+  let html='';
+  if(myNotifs.length){
+    myNotifs.forEach(n=>{
+      const icon=n.type==='slot_cancelled'?'ti-calendar-off':'ti-alert-triangle';
+      const color=n.type==='slot_cancelled'?'var(--red-text)':'var(--amber-text)';
+      const bg=n.type==='slot_cancelled'?'var(--red-light)':'var(--amber-light)';
+      const brd=n.type==='slot_cancelled'?'var(--red-border)':'#EF9F27';
+      html+=`<div style="background:${bg};border:.5px solid ${brd};border-radius:var(--radius-lg);padding:12px 16px;margin-bottom:8px;display:flex;align-items:flex-start;gap:10px;font-size:12px;color:${color}"><i class="ti ${icon}" style="font-size:18px;flex-shrink:0;margin-top:1px"></i><div style="flex:1">${n.message}</div><button onclick="dismissNotif('${n.id}')" style="background:none;border:none;cursor:pointer;color:${color};font-size:18px;line-height:1;flex-shrink:0">×</button></div>`;
+    });
+  }
+  if(overdueItems.length){
+    const items=overdueItems.map(x=>`<li>${x.cp.reference||'Achat'} — échéance du ${formatDateFr(x.pmt.date)}${x.pmt.amount?` (${parseFloat(x.pmt.amount).toFixed(0)} €)`:''}</li>`).join('');
+    html+=`<div class="payment-alert"><i class="ti ti-alert-circle" style="font-size:20px;flex-shrink:0;margin-top:1px"></i><div><strong>Un paiement est en attente</strong><br><ul style="margin:.4rem 0 .4rem 1rem;font-size:11px">${items}</ul>Merci de contacter votre professeur pour régulariser votre situation.</div></div>`;
+  }
+  zone.innerHTML=html;
 }
+
+window.dismissNotif=async function(notifId){
+  await fsUpdate("notifications",notifId,{read:true});
+  notifications=notifications.map(n=>n.id===notifId?{...n,read:true}:n);
+  renderPaymentAlerts(_selectedStudentId);
+};
 
 window.onStudentChange=function(){
   const sel=document.getElementById('studentSelect');
