@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -433,8 +434,11 @@ function showToast(msg,dur=3000){const t=document.getElementById('toast');t.text
 function hoursUntil(dateStr,timeStr){const d=parseDate(dateStr);const[h,m]=(timeStr||'').replace('h',':').split(':').map(Number);d.setHours(h||0,m||0,0,0);return(d-new Date())/3600000;}
 let _selectedStudentId=null;
 function getSelectedStudentId(){
+  const homeView=document.getElementById('homeView');
   const sel=document.getElementById('studentSelect');
-  if(sel) _selectedStudentId=sel.value||null;
+  // Le menu déroulant ne doit primer que si la page d'accueil (avec le select) est visible.
+  // Sinon (accès via lien personnel ?eleve=...), on garde l'élève déjà identifié.
+  if(sel&&homeView&&homeView.style.display!=='none') _selectedStudentId=sel.value||null;
   return _selectedStudentId;
 }
 function today(){return toISO(new Date());}
