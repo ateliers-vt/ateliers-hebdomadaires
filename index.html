@@ -184,6 +184,17 @@ input:focus,select:focus{border-color:var(--text)}
         <div style="font-size:11px;color:var(--text2)">L'accès se fait via un lien personnel envoyé par votre professeur. Si vous n'en avez pas encore, contactez-le directement pour l'obtenir.</div>
       </div>
 
+      <!-- DIVIDER -->
+      <div style="display:flex;align-items:center;gap:10px;margin:4px 0 12px"><div style="flex:1;height:.5px;background:var(--border)"></div><div style="font-size:10px;color:var(--text2);font-weight:500;white-space:nowrap">Planning</div><div style="flex:1;height:.5px;background:var(--border)"></div></div>
+
+      <!-- PLANNING PUBLIC (consultation seule, sans noms) -->
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--blue-light);border:.5px solid var(--blue-border)"></div> Disponible</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green-dark);border:.5px solid #639922"></div> Cours confirmé</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--gray-light)"></div> Complet / Fermé</div>
+      </div>
+      <div id="publicCalendar"><div class="loading"><div class="spinner"></div> Chargement...</div></div>
+
       <div id="infoSectionsVisitor"></div>
 
     </div><!-- fin visitorView -->
@@ -483,6 +494,7 @@ async function init(){
     if(!activePeriodId) setActivePeriod();
     checkUrlParam();
     renderStudentCalendar();
+    renderPublicCalendar();
   }catch(e){
     console.error("Erreur init:",e);
     document.getElementById('studentCalendar').innerHTML=`<div class="empty">Erreur de chargement (${e.code||e.message}). Vérifiez les règles Firestore.</div>`;
@@ -820,6 +832,34 @@ function buildCalendarHtml(period,pSlots,excl,clickFn,studentId){
   }
   return html;
 }
+
+// ── PLANNING PUBLIC (vue visiteur, sans lien personnel) ────────
+function renderPublicCalendar(){
+  const el=document.getElementById('publicCalendar');
+  if(!el)return;
+  const activePeriod=periods.find(p=>p.id===activePeriodId&&!p.archived);
+  if(!activePeriod){el.innerHTML='<div class="empty">Aucune période active pour le moment.</div>';return;}
+  const pSlots=slots.filter(s=>s.periodId===activePeriod.id&&!s.archived);
+  el.innerHTML=`<div style="font-size:12px;color:var(--text2);margin-bottom:.5rem;font-weight:500">${activePeriod.name}</div>`
+    +buildCalendarHtml(activePeriod,pSlots,activePeriod.exclusions||[],'openPublicModal',null);
+}
+window.openPublicModal=function(slotId){
+  const slot=slots.find(x=>x.id===slotId);if(!slot)return;
+  const d=parseDate(slot.date);
+  document.getElementById('genericModalTitle').textContent=formatFull(d)+' · '+slot.time;
+  const slotBk=bookings.filter(b=>b.slotId===slotId&&b.status==='confirmed');
+  const taken=slotBk.length,isFull=taken>=slot.maxPlaces;
+  let status;
+  if(slot.confirmed)status='<span class="badge badge-confirmed"><i class="ti ti-check"></i> Cours confirmé</span>';
+  else if(slot.closed)status='<span class="badge badge-closed">Fermé</span>';
+  else if(isFull)status='<span class="badge badge-full">Complet</span>';
+  else status='<span class="badge badge-available">Disponible</span>';
+  let html=`<div class="modal-row"><span>Statut</span>${status}</div>`;
+  html+=`<div class="modal-row"><span>Places</span><span>${taken}/${slot.maxPlaces}</span></div>`;
+  html+=`<div class="notice" style="margin-top:.75rem"><i class="ti ti-info-circle"></i> Connectez-vous via votre lien personnel pour vous inscrire.</div>`;
+  document.getElementById('genericModalContent').innerHTML=html;
+  document.getElementById('genericModal').classList.add('open');
+};
 
 // ── ADMIN SLOT MODAL ─────────────────────────────────────────
 window.openAdminModal=async function(slotId){
@@ -1403,8 +1443,10 @@ window.openStudentModal=async function(slotId){
   else if(myBooking)status='<span class="badge badge-booked">Vous êtes inscrit(e)</span>';
   else if(isFull)status='<span class="badge badge-full">Complet</span>';
   else status='<span class="badge badge-available">Disponible</span>';
+  const bookedNames=slotBk.map(b=>{const s=students.find(x=>x.id===b.studentId);return s?s.name:'?';});
   let html=`<div class="modal-row"><span>Statut</span>${status}</div>`;
   html+=`<div class="modal-row"><span>Inscrits</span><span>${taken}/${slot.maxPlaces}</span></div>`;
+  if(bookedNames.length)html+=`<div class="modal-row"><span>Participants</span><span style="font-size:12px;text-align:right;max-width:200px">${bookedNames.join(', ')}</span></div>`;
   if(slot.confirmed){html+=`<div class="confirmed-banner"><i class="ti ti-circle-check"></i> Ce cours est confirmé !</div>`;}
   else{html+=`<div class="not-confirmed-banner"><i class="ti ti-info-circle"></i> Ce cours sera confirmé dès ${AUTO_CONFIRM_COUNT} inscrits.</div>`;}
   if(st){
