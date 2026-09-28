@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -61,8 +60,6 @@ input:focus,select:focus{border-color:var(--text)}
 .cal-day.excluded{background:var(--bg2)}
 .cal-day.has-slot{cursor:pointer}
 .cal-day.has-slot:hover{border-color:var(--border2);background:var(--bg2)}
-.cal-day.past-day{opacity:.4;filter:grayscale(70%)}
-.cal-day.past-day.has-slot:hover{border-color:var(--border);background:var(--bg)}
 .day-num{font-size:10px;color:var(--text2);margin-bottom:2px}
 .slot-chip{border-radius:5px;padding:2px 4px;font-size:9px;font-weight:500;line-height:1.3;margin-top:2px;display:block}
 .chip-available{background:var(--blue-light);color:var(--blue-text)}
@@ -161,8 +158,8 @@ input:focus,select:focus{border-color:var(--text)}
   <!-- TAB STUDENT -->
   <div id="tab-student">
 
-    <!-- VUE VISITEUR (pas de lien personnel) -->
-    <div id="visitorView">
+    <!-- VUE ACCUEIL (quand pas d'élève sélectionné) -->
+    <div id="homeView">
 
       <!-- HERO SVG -->
       <div style="background:var(--teal-dark);border-radius:var(--radius-lg);overflow:hidden;position:relative;margin-bottom:12px;padding:24px 20px">
@@ -180,48 +177,15 @@ input:focus,select:focus{border-color:var(--text)}
         </div>
       </div>
 
-      <!-- ACCES SUR LIEN PERSONNEL -->
+      <!-- ACCES PLANNING -->
       <div style="background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px">
-        <div style="font-size:13px;font-weight:500;color:var(--teal-dark);margin-bottom:6px;display:flex;align-items:center;gap:6px"><i class="ti ti-link" aria-hidden="true"></i> Accès à votre planning</div>
-        <div style="font-size:11px;color:var(--text2)">L'accès se fait via un lien personnel envoyé par votre professeur. Si vous n'en avez pas encore, contactez-le directement pour l'obtenir.</div>
+        <div style="font-size:13px;font-weight:500;color:var(--teal-dark);margin-bottom:10px;display:flex;align-items:center;gap:6px"><i class="ti ti-calendar" aria-hidden="true"></i> Accéder à mon planning</div>
+        <select id="studentSelect" onchange="onStudentChange()" style="width:100%;margin-bottom:8px;border-color:#9FE1CB">
+          <option value="">-- Choisir mon nom --</option>
+        </select>
+        <div style="font-size:11px;color:var(--text2);text-align:center">Votre professeur vous a fourni un lien personnel — utilisez-le pour accéder directement à votre planning.</div>
       </div>
 
-      <!-- DIVIDER -->
-      <div style="display:flex;align-items:center;gap:10px;margin:4px 0 12px"><div style="flex:1;height:.5px;background:var(--border)"></div><div style="font-size:10px;color:var(--text2);font-weight:500;white-space:nowrap">Planning</div><div style="flex:1;height:.5px;background:var(--border)"></div></div>
-
-      <!-- PLANNING PUBLIC (consultation seule, sans noms) -->
-      <div class="legend">
-        <div class="legend-item"><div class="legend-dot" style="background:var(--blue-light);border:.5px solid var(--blue-border)"></div> Disponible</div>
-        <div class="legend-item"><div class="legend-dot" style="background:var(--green-dark);border:.5px solid #639922"></div> Cours confirmé</div>
-        <div class="legend-item"><div class="legend-dot" style="background:var(--gray-light)"></div> Complet / Fermé</div>
-      </div>
-      <div id="publicCalendar"><div class="loading"><div class="spinner"></div> Chargement...</div></div>
-
-      <div id="infoSectionsVisitor"></div>
-
-    </div><!-- fin visitorView -->
-
-    <!-- VUE ELEVE (via lien personnel) -->
-    <div id="studentView" style="display:none">
-      <div id="paymentAlertZone"></div>
-      <div id="heroBanner"></div>
-      <div id="studentStatsRow"></div>
-      <div class="legend">
-        <div class="legend-item"><div class="legend-dot" style="background:var(--blue-light);border:.5px solid var(--blue-border)"></div> Disponible</div>
-        <div class="legend-item"><div class="legend-dot" style="background:var(--teal-light);border:.5px solid var(--teal-border)"></div> Réservé</div>
-        <div class="legend-item"><div class="legend-dot" style="background:var(--green-dark);border:.5px solid #639922"></div> Cours confirmé</div>
-        <div class="legend-item"><div class="legend-dot" style="background:var(--gray-light)"></div> Complet / Fermé</div>
-      </div>
-      <div id="periodSelectorZone" style="margin-bottom:1rem"></div>
-      <div id="studentCalendar"><div class="loading"><div class="spinner"></div> Chargement...</div></div>
-      <div id="echeancierZone" style="margin-top:1rem"></div>
-      <div class="notice" style="margin-top:1rem"><i class="ti ti-info-circle"></i> Pour toute question, contactez votre professeur.</div>
-
-      <div id="infoSectionsStudent" style="margin-top:1.5rem"></div>
-    </div>
-
-    <!-- BLOC INFOS PARTAGE (comment ça marche / tarifs / infos pratiques) -->
-    <template id="infoSectionsTemplate">
       <!-- DIVIDER -->
       <div style="display:flex;align-items:center;gap:10px;margin:4px 0 12px"><div style="flex:1;height:.5px;background:var(--border)"></div><div style="font-size:10px;color:var(--text2);font-weight:500;white-space:nowrap">Comment ça marche</div><div style="flex:1;height:.5px;background:var(--border)"></div></div>
 
@@ -258,8 +222,7 @@ input:focus,select:focus{border-color:var(--text)}
         <div style="background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:14px">
           <div style="height:22px"></div>
           <div style="font-size:24px;font-weight:500;color:var(--text)">40 €<span style="font-size:11px;color:var(--text2);margin-left:2px">/ cours</span></div>
-          <div style="font-size:11px;color:var(--text2);margin-top:3px;margin-bottom:8px">Crédits à l'unité ou en pack 
-        </div>
+          <div style="font-size:11px;color:var(--text2);margin-top:3px;margin-bottom:8px">À l'unité<br>1 à 4 crédits au choix</div>
           <div style="font-size:10px;color:var(--text2);line-height:1.5">Nombre de cours libre — utilisable toute l'année<br>Sans engagement · Idéal pour essayer</div>
         </div>
       </div>
@@ -290,7 +253,24 @@ input:focus,select:focus{border-color:var(--text)}
           </div>
         </div>
       </div>
-    </template>
+
+    </div><!-- fin homeView -->
+
+    <!-- VUE ELEVE (une fois sélectionné) -->
+    <div id="studentView" style="display:none">
+      <div id="paymentAlertZone"></div>
+      <div id="heroBanner"></div>
+      <div id="studentStatsRow"></div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--blue-light);border:.5px solid var(--blue-border)"></div> Disponible</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--teal-light);border:.5px solid var(--teal-border)"></div> Réservé</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green-dark);border:.5px solid #639922"></div> Cours confirmé</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--gray-light)"></div> Complet / Fermé</div>
+      </div>
+      <div id="periodSelectorZone" style="margin-bottom:1rem"></div>
+      <div id="studentCalendar"><div class="loading"><div class="spinner"></div> Chargement...</div></div>
+      <div class="notice" style="margin-top:1rem"><i class="ti ti-info-circle"></i> Pour toute question, contactez votre professeur.</div>
+    </div>
 
   </div>
 
@@ -452,15 +432,9 @@ function showToast(msg,dur=3000){const t=document.getElementById('toast');t.text
 function hoursUntil(dateStr,timeStr){const d=parseDate(dateStr);const[h,m]=(timeStr||'').replace('h',':').split(':').map(Number);d.setHours(h||0,m||0,0,0);return(d-new Date())/3600000;}
 let _selectedStudentId=null;
 function getSelectedStudentId(){
-  // L'accès élève se fait uniquement via le lien personnel (?eleve=...), identifié une fois pour toutes dans checkUrlParam().
+  const sel=document.getElementById('studentSelect');
+  if(sel) _selectedStudentId=sel.value||null;
   return _selectedStudentId;
-}
-function injectInfoSections(){
-  const tpl=document.getElementById('infoSectionsTemplate');
-  const visitorZone=document.getElementById('infoSectionsVisitor');
-  const studentZone=document.getElementById('infoSectionsStudent');
-  if(tpl&&visitorZone) visitorZone.appendChild(tpl.content.cloneNode(true));
-  if(tpl&&studentZone) studentZone.appendChild(tpl.content.cloneNode(true));
 }
 function today(){return toISO(new Date());}
 function getPmtStatus(pmt){if(!pmt)return'pending';if(pmt.status==='paid')return'paid';if(pmt.date&&new Date(pmt.date+'T23:59:59')<new Date())return'overdue';return'pending';}
@@ -491,12 +465,11 @@ window.doLogout=async function(){await signOut(auth);showToast("Déconnectée");
 
 async function init(){
   try{
-    injectInfoSections();
     await loadAll();
+    populateStudentSelect();
     if(!activePeriodId) setActivePeriod();
     checkUrlParam();
     renderStudentCalendar();
-    renderPublicCalendar();
   }catch(e){
     console.error("Erreur init:",e);
     document.getElementById('studentCalendar').innerHTML=`<div class="empty">Erreur de chargement (${e.code||e.message}). Vérifiez les règles Firestore.</div>`;
@@ -537,7 +510,7 @@ function checkUrlParam(){
   const st=students.find(s=>slugify(s.name)===eleve.toLowerCase());
   if(st){
     _selectedStudentId=st.id;
-    document.getElementById('visitorView').style.display='none';
+    document.getElementById('homeView').style.display='none';
     document.getElementById('studentView').style.display='block';
     renderHeroBanner(st);
     renderPaymentAlerts(st.id);
@@ -797,8 +770,7 @@ function buildCalendarHtml(period,pSlots,excl,clickFn,studentId){
       const iso=`${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
       const slot=slotByDate[iso];
       const isExcl=exclSet.has(iso)&&!slot;
-      const isPast=iso<today();
-      let cls='cal-day';if(isExcl)cls+=' excluded';if(slot)cls+=' has-slot';if(isPast)cls+=' past-day';
+      let cls='cal-day';if(isExcl)cls+=' excluded';if(slot)cls+=' has-slot';
       let inner=`<div class="day-num">${day}</div>`;
       if(slot){
         const slotBk=bookings.filter(b=>b.slotId===slot.id&&b.status==='confirmed');
@@ -835,35 +807,6 @@ function buildCalendarHtml(period,pSlots,excl,clickFn,studentId){
   }
   return html;
 }
-
-// ── PLANNING PUBLIC (vue visiteur, sans lien personnel) ────────
-function renderPublicCalendar(){
-  const el=document.getElementById('publicCalendar');
-  if(!el)return;
-  const activePeriod=periods.find(p=>p.id===activePeriodId&&!p.archived);
-  if(!activePeriod){el.innerHTML='<div class="empty">Aucune période active pour le moment.</div>';return;}
-  const pSlots=slots.filter(s=>s.periodId===activePeriod.id&&!s.archived);
-  el.innerHTML=`<div style="font-size:12px;color:var(--text2);margin-bottom:.5rem;font-weight:500">${activePeriod.name}</div>`
-    +buildCalendarHtml(activePeriod,pSlots,activePeriod.exclusions||[],'openPublicModal',null);
-}
-window.openPublicModal=function(slotId){
-  const slot=slots.find(x=>x.id===slotId);if(!slot)return;
-  const d=parseDate(slot.date);
-  document.getElementById('genericModalTitle').textContent=formatFull(d)+' · '+slot.time;
-  const slotBk=bookings.filter(b=>b.slotId===slotId&&b.status==='confirmed');
-  const taken=slotBk.length,isFull=taken>=slot.maxPlaces;
-  let status;
-  if(slot.confirmed)status='<span class="badge badge-confirmed"><i class="ti ti-check"></i> Cours confirmé</span>';
-  else if(slot.closed)status='<span class="badge badge-closed">Fermé</span>';
-  else if(isFull)status='<span class="badge badge-full">Complet</span>';
-  else status='<span class="badge badge-available">Disponible</span>';
-  let html=`<div class="modal-row"><span>Statut</span>${status}</div>`;
-  html+=`<div class="modal-row"><span>Places</span><span>${taken}/${slot.maxPlaces}</span></div>`;
-  if(slot.date<today())html+=`<div class="notice" style="margin-top:.75rem"><i class="ti ti-calendar-x"></i> Ce créneau est passé.</div>`;
-  else html+=`<div class="notice" style="margin-top:.75rem"><i class="ti ti-info-circle"></i> Connectez-vous via votre lien personnel pour vous inscrire.</div>`;
-  document.getElementById('genericModalContent').innerHTML=html;
-  document.getElementById('genericModal').classList.add('open');
-};
 
 // ── ADMIN SLOT MODAL ─────────────────────────────────────────
 window.openAdminModal=async function(slotId){
@@ -968,16 +911,30 @@ async function renderCancelPendingList(){
 }
 window.approveCancel=async function(requestId){
   const req=cancelRequests.find(x=>x.id===requestId);if(!req)return;
+  // Vérification : la réservation n'est pas déjà annulée (évite le double crédit)
+  const booking=bookings.find(b=>b.id===req.bookingId);
+  if(!booking||booking.status==='cancelled'){
+    // Rejeter les autres demandes en double sur la même réservation
+    await fsUpdate("cancelRequests",requestId,{status:'rejected'});
+    cancelRequests=cancelRequests.filter(x=>x.id!==requestId);
+    renderAdmin();showToast("Cette réservation était déjà annulée — demande ignorée");
+    return;
+  }
   await fsUpdate("cancelRequests",requestId,{status:'approved'});
   await fsUpdate("bookings",req.bookingId,{status:'cancelled'});
   req.status='approved';
-  const booking=bookings.find(b=>b.id===req.bookingId);if(booking)booking.status='cancelled';
+  booking.status='cancelled';
   const st=students.find(x=>x.id===req.studentId);
   if(st){await fsUpdate("students",st.id,{credits:st.credits+1});st.credits++;}
+  // Rejeter automatiquement les autres demandes en double sur la même réservation
+  const duplicates=cancelRequests.filter(x=>x.id!==requestId&&x.bookingId===req.bookingId&&x.status==='pending');
+  for(const dup of duplicates){
+    await fsUpdate("cancelRequests",dup.id,{status:'rejected'});
+  }
+  cancelRequests=cancelRequests.filter(x=>x.id!==requestId&&!duplicates.find(d=>d.id===x.id));
   const remaining=bookings.filter(b=>b.slotId===req.slotId&&b.status==='confirmed').length;
   if(remaining<AUTO_CONFIRM_COUNT){const slot=slots.find(x=>x.id===req.slotId);if(slot&&slot.confirmed){await fsUpdate("slots",req.slotId,{confirmed:false});slot.confirmed=false;}}
-  cancelRequests=cancelRequests.filter(x=>x.id!==requestId);
-  renderAdmin();showToast("Annulation acceptée, crédit restitué");
+  renderAdmin();showToast("Annulation acceptée, 1 crédit restitué");
 };
 window.rejectCancel=async function(requestId){
   await fsUpdate("cancelRequests",requestId,{status:'rejected'});
@@ -1037,7 +994,7 @@ window.saveStudentName=async function(id){
   await fsUpdate("students",id,{name:newName});
   const st=students.find(x=>x.id===id);if(st)st.name=newName;
   students.sort((a,b)=>a.name.localeCompare(b.name));
-  renderStudents();showToast("Nom mis à jour");
+  renderStudents();populateStudentSelect();showToast("Nom mis à jour");
 };
 window.copyUrl=function(url){navigator.clipboard.writeText(url).then(()=>showToast("Lien copié !")).catch(()=>prompt("Copiez ce lien :",url));};
 window.removeStudent=async function(id){
@@ -1066,7 +1023,7 @@ window.removeStudent=async function(id){
   // Supprimer l'élève
   await fsDelete("students",id);
   students=students.filter(x=>x.id!==id);
-  renderStudents();renderAdmin();showToast("Élève et toutes ses données supprimés");
+  renderStudents();populateStudentSelect();renderAdmin();showToast("Élève et toutes ses données supprimés");
 };
 window.showAddStudent=function(){document.getElementById('addStudentForm').style.display='block';document.getElementById('newStudentName').focus();};
 window.addStudent=async function(){
@@ -1075,7 +1032,7 @@ window.addStudent=async function(){
   students.push(r);students.sort((a,b)=>a.name.localeCompare(b.name));
   document.getElementById('newStudentName').value='';
   document.getElementById('addStudentForm').style.display='none';
-  renderStudents();showToast("Élève ajouté(e)");
+  renderStudents();populateStudentSelect();showToast("Élève ajouté(e)");
 };
 
 // ── CREDIT PURCHASES ──────────────────────────────────────────
@@ -1205,7 +1162,7 @@ window.savePurchase=async function(){
   creditPurchases.unshift(r);
   const newCredits=st.credits+creditsBought;
   await fsUpdate("students",studentId,{credits:newCredits});st.credits=newCredits;
-  closeGenericModal();renderCreditPurchases();renderStudents();
+  closeGenericModal();renderCreditPurchases();renderStudents();populateStudentSelect();
   showToast(`${creditsBought} crédits ajoutés à ${st.name}`);
 };
 
@@ -1286,6 +1243,13 @@ window.setPmtNote=async function(cpId,idx,val){
 };
 
 // ── STUDENT VIEW ─────────────────────────────────────────────
+function populateStudentSelect(){
+  const sel=document.getElementById('studentSelect');
+  if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">-- Choisir mon nom --</option>'+students.map(s=>`<option value="${s.id}"${s.id===cur?' selected':''}>${s.name}</option>`).join('');
+}
+
 function renderHeroBanner(st){
   const s=studentStats(st.id);
   const allSlots=slots.filter(sl=>!sl.archived&&!sl.closed);
@@ -1315,34 +1279,6 @@ function renderHeroBanner(st){
       <div class="stat-box"><span class="stat-val">${s.used}</span><span class="stat-lbl">séances réservées</span></div>
       <div class="stat-box"><span class="stat-val" style="color:${s.remaining<2?'var(--red-text)':'var(--teal-mid)'}">${s.remaining}</span><span class="stat-lbl">crédits restants</span></div>
     </div>`;
-  renderEcheancier(st.id);
-}
-
-function renderEcheancier(studentId){
-  const zone=document.getElementById('echeancierZone');
-  if(!zone)return;
-  const purchases=creditPurchases.filter(cp=>cp.studentId===studentId);
-  let rows=[];
-  purchases.forEach(cp=>{
-    (cp.payments||[]).forEach(pmt=>{
-      if(!pmt)return;
-      rows.push({date:pmt.date,amount:pmt.amount,status:getPmtStatus(pmt),ref:cp.reference||'Achat'});
-    });
-  });
-  if(!rows.length){zone.innerHTML='';return;}
-  rows.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
-  const statusInfo={paid:{label:'Payé',color:'var(--teal-mid)',bg:'var(--teal-light)'},overdue:{label:'En retard',color:'var(--red-text)',bg:'var(--red-light)'},pending:{label:'À venir',color:'#854F0B',bg:'#FAEEDA'}};
-  const items=rows.map(r=>{
-    const si=statusInfo[r.status];
-    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:.5px solid var(--border);font-size:12px">
-      <div><div style="color:var(--text)">${r.date?formatDateFr(r.date):'—'}${r.amount?` — ${parseFloat(r.amount).toFixed(0)} €`:''}</div><div style="font-size:10px;color:var(--text2);margin-top:1px">${r.ref}</div></div>
-      <span style="font-size:10px;font-weight:500;color:${si.color};background:${si.bg};border-radius:20px;padding:2px 10px">${si.label}</span>
-    </div>`;
-  }).join('');
-  zone.innerHTML=`<div style="background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem">
-    <div style="font-size:13px;font-weight:500;color:var(--teal-dark);margin-bottom:6px;display:flex;align-items:center;gap:6px"><i class="ti ti-receipt" aria-hidden="true"></i> Mes échéances</div>
-    ${items}
-  </div>`;
 }
 
 function renderStudentView(){
@@ -1392,6 +1328,23 @@ window.dismissNotif=async function(notifId){
   await fsUpdate("notifications",notifId,{read:true});
   notifications=notifications.map(n=>n.id===notifId?{...n,read:true}:n);
   renderPaymentAlerts(_selectedStudentId);
+};
+
+window.onStudentChange=function(){
+  const sel=document.getElementById('studentSelect');
+  _selectedStudentId=sel?sel.value||null:null;
+  const st=students.find(x=>x.id===_selectedStudentId);
+  if(st){
+    document.getElementById('homeView').style.display='none';
+    document.getElementById('studentView').style.display='block';
+    renderHeroBanner(st);
+    renderPaymentAlerts(_selectedStudentId);
+    renderStudentCalendar();
+  } else {
+    document.getElementById('homeView').style.display='block';
+    document.getElementById('studentView').style.display='none';
+    populateStudentSelect();
+  }
 };
 
 function renderPeriodSelector(){
@@ -1447,16 +1400,11 @@ window.openStudentModal=async function(slotId){
   else if(myBooking)status='<span class="badge badge-booked">Vous êtes inscrit(e)</span>';
   else if(isFull)status='<span class="badge badge-full">Complet</span>';
   else status='<span class="badge badge-available">Disponible</span>';
-  const bookedNames=slotBk.map(b=>{const s=students.find(x=>x.id===b.studentId);return s?s.name:'?';});
-  const isPast=slot.date<today();
   let html=`<div class="modal-row"><span>Statut</span>${status}</div>`;
   html+=`<div class="modal-row"><span>Inscrits</span><span>${taken}/${slot.maxPlaces}</span></div>`;
-  if(bookedNames.length)html+=`<div class="modal-row"><span>Participants</span><span style="font-size:12px;text-align:right;max-width:200px">${bookedNames.join(', ')}</span></div>`;
   if(slot.confirmed){html+=`<div class="confirmed-banner"><i class="ti ti-circle-check"></i> Ce cours est confirmé !</div>`;}
   else{html+=`<div class="not-confirmed-banner"><i class="ti ti-info-circle"></i> Ce cours sera confirmé dès ${AUTO_CONFIRM_COUNT} inscrits.</div>`;}
-  if(isPast){
-    html+=`<div class="notice" style="margin-top:.75rem"><i class="ti ti-calendar-x"></i> Ce créneau est passé : inscription et annulation ne sont plus possibles.</div>`;
-  }else if(st){
+  if(st){
     if(myBooking&&!hasCancelReq){
       const hours=hoursUntil(slot.date,slot.time);
       if(hours<CANCEL_HOURS_LIMIT){html+=`<div class="notice-warning" style="margin-top:.75rem"><i class="ti ti-alert-triangle"></i> Ce cours est dans moins de 48h, l'annulation n'est plus possible. Contactez votre professeur.</div>`;}
@@ -1480,7 +1428,6 @@ window.bookSlot=async function(slotId){
   const studentId=getSelectedStudentId();if(!studentId)return;
   const st=students.find(x=>x.id===studentId);if(!st||st.credits<=0)return;
   const slot=slots.find(x=>x.id===slotId);if(!slot)return;
-  if(slot.date<today()){showToast("Ce créneau est passé.");return;}
   const slotBk=bookings.filter(b=>b.slotId===slotId&&b.status==='confirmed');
   if(slotBk.length>=slot.maxPlaces){showToast("Créneau complet.");return;}
   if(slotBk.some(b=>b.studentId===studentId)){showToast("Déjà inscrit(e).");return;}
@@ -1510,7 +1457,12 @@ window.requestCancel=async function(bookingId,slotId){
   const studentId=getSelectedStudentId();if(!studentId)return;
   const st=students.find(x=>x.id===studentId);
   const slot=slots.find(x=>x.id===slotId);
-  if(slot&&slot.date<today()){showToast("Ce créneau est passé.");return;}
+  // Vérification : une demande en attente existe déjà pour cette réservation
+  const alreadyPending=cancelRequests.find(r=>r.bookingId===bookingId&&r.studentId===studentId&&r.status==='pending');
+  if(alreadyPending){
+    showToast("Une demande d'annulation est déjà en attente pour ce cours.");
+    closeModalStudent();return;
+  }
   const r=await fsAdd("cancelRequests",{bookingId,slotId,studentId,status:'pending'});
   cancelRequests.push(r);
   closeModalStudent();renderStudentCalendar();
