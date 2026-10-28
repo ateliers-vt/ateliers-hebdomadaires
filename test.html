@@ -304,6 +304,14 @@ input:focus,select:focus{border-color:var(--text)}
 
       <!-- PLANNING -->
       <div id="adminTab-planning">
+        <div id="autoCancelBanner" style="display:none;background:var(--amber-light);border:.5px solid #EF9F27;border-radius:var(--radius-lg);padding:12px 16px;margin-bottom:1rem;align-items:center;gap:10px">
+          <i class="ti ti-bell-ringing" style="font-size:20px;color:var(--amber-text);flex-shrink:0" aria-hidden="true"></i>
+          <div style="flex:1;font-size:13px;color:var(--amber-text)">
+            <strong>Annulation(s) récente(s)</strong>
+            <div id="autoCancelDetails" style="font-size:12px;margin-top:2px"></div>
+          </div>
+          <button class="btn btn-sm btn-warning" onclick="dismissAutoCancels()">Marquer comme vu</button>
+        </div>
         <div id="cancelAlertBanner" style="display:none;background:var(--amber-light);border:.5px solid #EF9F27;border-radius:var(--radius-lg);padding:12px 16px;margin-bottom:1rem;display:none;align-items:center;gap:10px">
           <i class="ti ti-bell-ringing" style="font-size:20px;color:var(--amber-text);flex-shrink:0" aria-hidden="true"></i>
           <div style="flex:1;font-size:13px;color:var(--amber-text)">
@@ -399,7 +407,8 @@ import { getFirestore,collection,doc,getDocs,addDoc,updateDoc,deleteDoc,query,wh
 import { getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const ADMIN_EMAIL="virginie.ternois@gmail.com";
-const CANCEL_HOURS_LIMIT=48;
+const CANCEL_HOURS_LIMIT=48;      // moins de 48 h : annulation impossible pour l'élève
+const CANCEL_DIRECT_HOURS=7*24;   // 7 jours ou plus : l'élève annule seul ; entre les deux : demande à valider
 const AUTO_CONFIRM_COUNT=3;
 const UPCOMING_DAYS=14;
 
@@ -495,7 +504,7 @@ async function loadAll(){
     safe(()=>fsGetAll("slots")),
     safe(()=>fsGetAll("students")),
     safe(()=>fsGetAll("bookings")),
-    safe(()=>fsGetWhere("cancelRequests","status","==","pending")),
+    safe(()=>fsGetWhere("cancelRequests","status","in",["pending","auto"])),
     safe(()=>fsGetAll("creditPurchases")),
     safe(()=>fsGetAll("notifications")),
   ]);
@@ -922,6 +931,22 @@ async function renderCancelPendingList(){
   const el=document.getElementById('cancelPendingList');
   const banner=document.getElementById('cancelAlertBanner');
   const pending=cancelRequests.filter(r=>r.status==='pending');
+  // Bandeau : annulations faites directement par les élèves (plus de 7 jours avant)
+  const autoBanner=document.getElementById('autoCancelBanner');
+  if(autoBanner){
+    const autos=cancelRequests.filter(r=>r.status==='auto');
+    if(autos.length){
+      const det=autos.map(r=>{
+        const st=students.find(x=>x.id===r.studentId);
+        const sl=slots.find(x=>x.id===r.slotId);
+        if(!st||!sl)return'';
+        const d=parseDate(sl.date);
+        return`${st.name} · ${d.getDate()} ${MONTHS[d.getMonth()].slice(0,3)} ${sl.time}`;
+      }).filter(Boolean).join(' — ');
+      document.getElementById('autoCancelDetails').textContent=det||'Voir le planning';
+      autoBanner.style.display='flex';
+    }else{autoBanner.style.display='none';}
+  }
   // Update banner
   if(banner){
     if(pending.length){
@@ -1454,7 +1479,8 @@ window.openStudentModal=async function(slotId){
     if(myBooking&&!hasCancelReq){
       const hours=hoursUntil(slot.date,slot.time);
       if(hours<CANCEL_HOURS_LIMIT){html+=`<div class="notice-warning" style="margin-top:.75rem"><i class="ti ti-alert-triangle"></i> Ce cours est dans moins de 48h, l'annulation n'est plus possible. Contactez votre professeur.</div>`;}
-      else{html+=`<div style="margin-top:1rem"><button class="btn btn-danger" style="width:100%" onclick="requestCancel('${myBooking.id}','${slotId}')"><i class="ti ti-calendar-minus"></i> Demander l'annulation</button></div>`;}
+      else if(hours>=CANCEL_DIRECT_HOURS){html+=`<div style="margin-top:1rem"><button class="btn btn-danger" style="width:100%" onclick="cancelBookingDirect('${myBooking.id}','${slotId}')"><i class="ti ti-calendar-minus"></i> Annuler ma réservation</button></div>`;}
+      else{html+=`<div style="margin-top:1rem"><button class="btn btn-danger" style="width:100%" onclick="requestCancel('${myBooking.id}','${slotId}')"><i class="ti ti-calendar-minus"></i> Demander l'annulation</button><div style="font-size:11px;color:var(--text2);margin-top:6px;text-align:center">À moins de 7 jours du cours, votre professeur valide la demande.</div></div>`;}
     }else if(myBooking&&hasCancelReq){
       html+=`<div class="notice" style="margin-top:.75rem">Votre demande d'annulation est en attente de validation.</div>`;
     }else if(!myBooking&&!isFull&&!slot.closed){
@@ -1517,25 +1543,59 @@ window.exportData=async function(){
     const day=new Date().toISOString().slice(0,10);
     downloadFile(`sauvegarde-ateliers-${day}.json`,JSON.stringify(data,null,2),'application/json');
     const esc=v=>`"${String(v??'').replace(/"/g,'""')}"`;
-    const lines=[["Élève","Crédits restants","Crédits achetés","Cours réservés (confirmés)","Échéances en attente","Montant en attente (€)"].map(esc).join(';')];
+    const lines=[["Élève","Crédits restants","Crédits achetés","Cours réservés (confirmés)","Échéances payées","Montant payé (€)","Échéances en attente","Montant en attente (€)","Dates des prochaines échéances"].map(esc).join(';')];
     data.students.forEach(st=>{
       const purchases=data.creditPurchases.filter(cp=>cp.studentId===st.id);
       const bought=purchases.reduce((n,cp)=>n+(cp.creditsBought||0),0);
       const booked=data.bookings.filter(b=>b.studentId===st.id&&b.status==='confirmed').length;
-      let pc=0,pa=0;
-      purchases.forEach(cp=>(cp.payments||[]).forEach(pm=>{if(pm&&getPmtStatus(pm)!=='paid'){pc++;pa+=parseFloat(pm.amount)||0;}}));
-      lines.push([st.name,st.credits||0,bought,booked,pc,pa].map(esc).join(';'));
+      let pc=0,pa=0,paidC=0,paidA=0;const next=[];
+      purchases.forEach(cp=>(cp.payments||[]).forEach(pm=>{
+        if(!pm)return;
+        if(getPmtStatus(pm)==='paid'){paidC++;paidA+=parseFloat(pm.amount)||0;}
+        else{pc++;pa+=parseFloat(pm.amount)||0;next.push(pm);}
+      }));
+      next.sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999'));
+      const fmt=d=>d?d.split('-').reverse().join('/'):'sans date';
+      const nextTxt=next.map(pm=>`${fmt(pm.date)} (${parseFloat(pm.amount)||0} €)`).join(' | ');
+      lines.push([st.name,st.credits||0,bought,booked,paidC,paidA,pc,pa,nextTxt].map(esc).join(';'));
     });
     setTimeout(()=>downloadFile(`eleves-ateliers-${day}.csv`,'\ufeff'+lines.join('\n'),'text/csv;charset=utf-8'),600);
     showToast("Sauvegarde téléchargée");
   }catch(e){console.error(e);showToast("Erreur pendant la sauvegarde");}
 };
 
+window.cancelBookingDirect=async function(bookingId,slotId){
+  const studentId=getSelectedStudentId();if(!studentId)return;
+  const slot=slots.find(x=>x.id===slotId);
+  const booking=bookings.find(b=>b.id===bookingId&&b.studentId===studentId&&b.status==='confirmed');
+  if(!slot||!booking){showToast("Réservation introuvable.");closeModalStudent();return;}
+  if(hoursUntil(slot.date,slot.time)<CANCEL_DIRECT_HOURS){showToast("Annulation directe impossible à moins de 7 jours : envoyez une demande.");closeModalStudent();return;}
+  if(!confirm("Annuler votre réservation pour ce cours ?"))return;
+  try{
+    await fsUpdate("bookings",bookingId,{status:'cancelled'});booking.status='cancelled';
+    const st=students.find(x=>x.id===studentId);
+    if(st&&booking.viaCredit!==false){const nc=(st.credits||0)+1;await fsUpdate("students",st.id,{credits:nc});st.credits=nc;}
+    const remaining=bookings.filter(b=>b.slotId===slotId&&b.status==='confirmed').length;
+    if(remaining<AUTO_CONFIRM_COUNT&&slot.confirmed){await fsUpdate("slots",slotId,{confirmed:false});slot.confirmed=false;}
+    const alertDoc=await fsAdd("cancelRequests",{bookingId,slotId,studentId,status:'auto',createdAt:new Date().toISOString()});
+    cancelRequests.push(alertDoc);
+    if(st)renderHeroBanner(st);
+    renderStudentCalendar();closeModalStudent();
+    showToast("Réservation annulée");
+  }catch(e){console.error(e);showToast("Une erreur est survenue. Réessayez ou contactez votre professeur.");}
+};
+window.dismissAutoCancels=async function(){
+  const autos=cancelRequests.filter(r=>r.status==='auto');
+  for(const r of autos){try{await fsUpdate("cancelRequests",r.id,{status:'seen'});}catch(e){console.warn(e);}}
+  cancelRequests=cancelRequests.filter(r=>r.status!=='auto');
+  renderCancelPendingList();
+};
 window.requestCancel=async function(bookingId,slotId){
   const studentId=getSelectedStudentId();if(!studentId)return;
   const st=students.find(x=>x.id===studentId);
   const slot=slots.find(x=>x.id===slotId);
   if(slot&&slot.date<today()){showToast("Ce créneau est passé.");return;}
+  if(slot&&hoursUntil(slot.date,slot.time)<CANCEL_HOURS_LIMIT){showToast("Ce cours est dans moins de 48h : contactez votre professeur.");closeModalStudent();return;}
   // Vérification : pas de demande déjà en attente pour cette réservation
   const alreadyPending=cancelRequests.find(r=>r.bookingId===bookingId&&r.studentId===studentId&&r.status==='pending');
   if(alreadyPending){
