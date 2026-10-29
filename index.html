@@ -1,5 +1,5 @@
-
 <!DOCTYPE html>
+<!-- VERSION-ETAPE-7E : admin réservations &amp; paiements, À relancer, bandeau échéance (28/10/2026) -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -12,7 +12,7 @@
   --bg:#fff;--bg2:#f5f5f3;--bg3:#eeecea;
   --text:#1a1a18;--text2:#6b6b67;--text3:#9a9a96;
   --border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.22);
-  --teal-dark:#085041;--teal-mid:#1D9E75;--teal-light:#E1F5EE;--teal-border:#9FE1CB;
+  --teal-dark:#085041;--teal-text:#085041;--teal-mid:#1D9E75;--teal-light:#E1F5EE;--teal-border:#9FE1CB;
   --blue-light:#E6F1FB;--blue-text:#0C447C;--blue-border:#B5D4F4;
   --green-dark:#27500A;--green-light:#EAF3DE;--green-border:#C0DD97;--green-text:#173404;
   --red-light:#FCEBEB;--red-text:#791F1F;--red-border:#F7C1C1;
@@ -24,6 +24,7 @@
   --bg:#1e1e1c;--bg2:#2a2a28;--bg3:#333330;
   --text:#e8e8e4;--text2:#9a9a96;--text3:#6b6b67;
   --border:rgba(255,255,255,0.12);--border2:rgba(255,255,255,0.22);
+  --teal-text:#6FD6B4;--red-text:#F4A3A3;--red-light:#3d2020;--red-border:#7a3b3b;
 }}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;color:var(--text);background:var(--bg3);min-height:100vh}
 .container{max-width:820px;margin:0 auto;padding:1.5rem 1rem 3rem}
@@ -40,7 +41,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-siz
 .btn-sm{padding:4px 10px;font-size:11px}
 .btn-danger{color:var(--red-text);border-color:var(--red-border)}
 .btn-danger:hover{background:var(--red-light)}
-.btn-success{color:var(--teal-dark);border-color:var(--teal-border)}
+.btn-success{color:var(--teal-text);border-color:var(--teal-border)}
 .btn-success:hover{background:var(--teal-light)}
 .btn-warning{color:#854F0B;border-color:#EF9F27}
 .btn-warning:hover{background:var(--amber-light)}
@@ -56,7 +57,8 @@ input:focus,select:focus{border-color:var(--text)}
 .month-title{font-size:15px;font-weight:500;margin-bottom:.75rem}
 .cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
 .cal-header{text-align:center;font-size:10px;font-weight:500;color:var(--text2);padding:4px 0;text-transform:uppercase;letter-spacing:.04em}
-.cal-day{min-height:58px;border-radius:var(--radius);border:.5px solid var(--border);padding:4px;background:var(--bg)}
+#calMonths:not(.open) .month-block.extra-month{display:none}
+.cal-day{position:relative;min-height:58px;border-radius:var(--radius);border:.5px solid var(--border);padding:4px;background:var(--bg)}
 .cal-day.empty{border-color:transparent;background:transparent}
 .cal-day.excluded{background:var(--bg2)}
 .cal-day.has-slot{cursor:pointer}
@@ -64,6 +66,10 @@ input:focus,select:focus{border-color:var(--text)}
 .cal-day.past-day{opacity:.4;filter:grayscale(70%)}
 .cal-day.past-day.has-slot:hover{border-color:var(--border);background:var(--bg)}
 .day-num{font-size:10px;color:var(--text2);margin-bottom:2px}
+.my-mark{position:absolute;top:3px;right:3px;width:14px;height:14px;border-radius:50%;font-size:9px;font-weight:700;line-height:14px;text-align:center}
+.my-mark.wait{background:#9FE1CB;color:var(--teal-dark)}
+.my-mark.ok{background:var(--teal-dark);color:#fff}
+.cal-day.my-day{border:2px solid var(--teal-dark);padding:3px}
 .slot-chip{border-radius:5px;padding:2px 4px;font-size:9px;font-weight:500;line-height:1.3;margin-top:2px;display:block}
 .chip-available{background:var(--blue-light);color:var(--blue-text)}
 .chip-booked{background:var(--teal-light);color:var(--teal-dark)}
@@ -113,6 +119,14 @@ input:focus,select:focus{border-color:var(--text)}
 .hero-greeting{font-size:11px;color:var(--teal-border);margin-bottom:3px}
 .hero-name{font-size:20px;font-weight:500;color:var(--teal-light)}
 .hero-credits-val{font-size:28px;font-weight:500;color:#9FE1CB}
+.hero-forfait{font-size:12px;color:#9FE1CB;margin-top:12px;padding-top:10px;border-top:.5px solid rgba(159,225,203,.3);display:flex;gap:6px;align-items:flex-start;line-height:1.4}
+.hero-row{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:2px 8px;padding:6px 0;border-top:.5px solid rgba(159,225,203,.22);font-size:13px;color:var(--teal-light)}
+.hero-row:first-child{border-top:none}
+.hero-st{font-size:11px;white-space:nowrap;display:flex;align-items:center;gap:4px;color:#9FE1CB}
+.hero-st.ok{color:#fff;font-weight:500}
+.hero-list:not(.open) .hero-row.extra{display:none}
+.hero-list.open .hero-rows{max-height:300px;overflow:auto}
+.hero-more-btn{background:none;border:none;color:#9FE1CB;font-size:12px;cursor:pointer;padding:6px 0 0;text-decoration:underline}
 .hero-credits-lbl{font-size:10px;color:#5DCAA5;text-align:right}
 .next-session{background:rgba(255,255,255,0.09);border-radius:var(--radius);padding:10px 14px}
 .next-session-lbl{font-size:10px;color:#5DCAA5;text-transform:uppercase;letter-spacing:.05em;font-weight:500;margin-bottom:4px}
@@ -176,13 +190,13 @@ input:focus,select:focus{border-color:var(--text)}
         <div style="position:relative">
           <div style="font-size:10px;color:#9FE1CB;text-transform:uppercase;letter-spacing:.08em;font-weight:500;margin-bottom:6px"><i class="ti ti-plant-2" aria-hidden="true"></i> Ateliers céramique</div>
           <div style="font-size:22px;font-weight:500;color:#E1F5EE;line-height:1.25;margin-bottom:6px">Bienvenue dans<br>l'atelier de Virginie</div>
-          <div style="font-size:12px;color:#9FE1CB">Réservez vos séances, gérez vos crédits en toute simplicité.</div>
+          <div style="font-size:12px;color:#9FE1CB">Réservez vos séances en toute simplicité.</div>
         </div>
       </div>
 
       <!-- ACCES SUR LIEN PERSONNEL -->
       <div style="background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px">
-        <div style="font-size:13px;font-weight:500;color:var(--teal-dark);margin-bottom:6px;display:flex;align-items:center;gap:6px"><i class="ti ti-link" aria-hidden="true"></i> Accès à votre planning</div>
+        <div style="font-size:13px;font-weight:500;color:var(--teal-text);margin-bottom:6px;display:flex;align-items:center;gap:6px"><i class="ti ti-link" aria-hidden="true"></i> Accès à votre planning</div>
         <div style="font-size:11px;color:var(--text2)">L'accès se fait via un lien personnel envoyé par votre professeur. Si vous n'en avez pas encore, contactez-le directement pour l'obtenir.</div>
       </div>
 
@@ -226,41 +240,16 @@ input:focus,select:focus{border-color:var(--text)}
       <div style="display:flex;align-items:center;gap:10px;margin:4px 0 12px"><div style="flex:1;height:.5px;background:var(--border)"></div><div style="font-size:10px;color:var(--text2);font-weight:500;white-space:nowrap">Comment ça marche</div><div style="flex:1;height:.5px;background:var(--border)"></div></div>
 
       <!-- STEPS -->
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px">
         <div style="background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:12px;text-align:center">
           <div style="width:26px;height:26px;border-radius:50%;background:var(--teal-dark);color:#E1F5EE;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;margin:0 auto 8px">1</div>
-          <div style="font-size:11px;font-weight:500;color:var(--text);margin-bottom:3px">Achetez des crédits</div>
-          <div style="font-size:10px;color:var(--text2);line-height:1.4">Choisissez votre formule et achetez vos crédits directement auprès de votre professeur</div>
+          <div style="font-size:11px;font-weight:500;color:var(--text);margin-bottom:3px">Réservez</div>
+          <div style="font-size:10px;color:var(--text2);line-height:1.4">Choisissez un créneau dans votre planning, sans engagement</div>
         </div>
         <div style="background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:12px;text-align:center">
           <div style="width:26px;height:26px;border-radius:50%;background:var(--teal-dark);color:#E1F5EE;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;margin:0 auto 8px">2</div>
-          <div style="font-size:11px;font-weight:500;color:var(--text);margin-bottom:3px">Réservez</div>
-          <div style="font-size:10px;color:var(--text2);line-height:1.4">Choisissez un créneau dans votre planning</div>
-        </div>
-        <div style="background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:12px;text-align:center">
-          <div style="width:26px;height:26px;border-radius:50%;background:var(--teal-dark);color:#E1F5EE;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;margin:0 auto 8px">3</div>
           <div style="font-size:11px;font-weight:500;color:var(--text);margin-bottom:3px">À l'atelier !</div>
-          <div style="font-size:10px;color:var(--text2);line-height:1.4">Le cours est confirmé dès 3 inscrits</div>
-        </div>
-      </div>
-
-      <!-- DIVIDER -->
-      <div style="display:flex;align-items:center;gap:10px;margin:4px 0 12px"><div style="flex:1;height:.5px;background:var(--border)"></div><div style="font-size:10px;color:var(--text2);font-weight:500;white-space:nowrap">Tarifs</div><div style="flex:1;height:.5px;background:var(--border)"></div></div>
-
-      <!-- TARIFS -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
-        <div style="background:var(--bg);border:1.5px solid var(--teal-mid);border-radius:var(--radius-lg);padding:14px">
-          <div style="font-size:9px;font-weight:500;color:var(--teal-dark);background:var(--teal-light);border-radius:20px;padding:2px 8px;display:inline-block;margin-bottom:8px"><i class="ti ti-star" aria-hidden="true"></i> Meilleur tarif</div>
-          <div style="font-size:24px;font-weight:500;color:var(--teal-dark)">35 €<span style="font-size:11px;color:var(--text2);margin-left:2px">/ cours</span></div>
-          <div style="font-size:11px;color:var(--text2);margin-top:3px;margin-bottom:8px">Pack trimestriel<br>À partir de 5 crédits</div>
-          <div style="font-size:10px;color:var(--text2);line-height:1.5">Pour un suivi régulier · Valable sur le trimestre</div>
-        </div>
-        <div style="background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:14px">
-          <div style="height:22px"></div>
-          <div style="font-size:24px;font-weight:500;color:var(--text)">40 €<span style="font-size:11px;color:var(--text2);margin-left:2px">/ cours</span></div>
-          <div style="font-size:11px;color:var(--text2);margin-top:3px;margin-bottom:8px">Crédits à l'unité ou en pack 
-        </div>
-          <div style="font-size:10px;color:var(--text2);line-height:1.5">Nombre de cours libre — utilisable toute l'année<br>Sans engagement · Idéal pour essayer</div>
+          <div style="font-size:10px;color:var(--text2);line-height:1.4">Rendez-vous à l'atelier le jour du cours</div>
         </div>
       </div>
 
@@ -280,6 +269,19 @@ input:focus,select:focus{border-color:var(--text)}
           <i class="ti ti-clock" style="color:var(--teal-mid);font-size:16px;flex-shrink:0;margin-top:2px" aria-hidden="true"></i>
           <div>
             <div style="font-size:12px;font-weight:500;color:var(--text)">Vendredi soir à 18h · Samedi matin à 10h</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px">
+          <i class="ti ti-users" style="color:var(--teal-mid);font-size:16px;flex-shrink:0;margin-top:2px" aria-hidden="true"></i>
+          <div>
+            <div style="font-size:12px;font-weight:500;color:var(--text)">Confirmation des cours</div>
+            <div style="font-size:11px;color:var(--text2);line-height:1.4">Un cours est confirmé dès que 3 personnes sont inscrites. Tant qu'il y en a moins, il apparaît « en attente de confirmation ».</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px">
+          <i class="ti ti-coin-euro" style="color:var(--teal-mid);font-size:16px;flex-shrink:0;margin-top:2px" aria-hidden="true"></i>
+          <div>
+            <div style="font-size:12px;font-weight:500;color:var(--text)">Tarif : 35 € le cours</div>
           </div>
         </div>
         <div style="display:flex;align-items:flex-start;gap:10px">
@@ -310,16 +312,25 @@ input:focus,select:focus{border-color:var(--text)}
     <div id="adminContent" style="display:none">
       <div class="admin-bar">
         <span style="font-size:12px;color:var(--text2)"><i class="ti ti-shield-check" style="color:var(--teal-mid)"></i> Connectée en tant qu'admin</span>
+        <button class="btn btn-sm" onclick="exportData()"><i class="ti ti-download"></i> Sauvegarde</button>
         <button class="btn btn-sm btn-danger" onclick="doLogout()"><i class="ti ti-logout"></i> Déconnexion</button>
       </div>
       <div class="tabs" style="margin-bottom:1rem">
         <button class="tab active" onclick="showAdminTab('planning')" id="atab-planning">Planning</button>
         <button class="tab" onclick="showAdminTab('students')" id="atab-students">Élèves</button>
-        <button class="tab" onclick="showAdminTab('credits')" id="atab-credits">Crédits & paiements</button>
+        <button class="tab" onclick="showAdminTab('credits')" id="atab-credits">Réservations &amp; paiements</button>
       </div>
 
       <!-- PLANNING -->
       <div id="adminTab-planning">
+        <div id="autoCancelBanner" style="display:none;background:var(--amber-light);border:.5px solid #EF9F27;border-radius:var(--radius-lg);padding:12px 16px;margin-bottom:1rem;align-items:center;gap:10px">
+          <i class="ti ti-bell-ringing" style="font-size:20px;color:var(--amber-text);flex-shrink:0" aria-hidden="true"></i>
+          <div style="flex:1;font-size:13px;color:var(--amber-text)">
+            <strong>Annulation(s) récente(s)</strong>
+            <div id="autoCancelDetails" style="font-size:12px;margin-top:2px"></div>
+          </div>
+          <button class="btn btn-sm btn-warning" onclick="dismissAutoCancels()">Marquer comme vu</button>
+        </div>
         <div id="cancelAlertBanner" style="display:none;background:var(--amber-light);border:.5px solid #EF9F27;border-radius:var(--radius-lg);padding:12px 16px;margin-bottom:1rem;display:none;align-items:center;gap:10px">
           <i class="ti ti-bell-ringing" style="font-size:20px;color:var(--amber-text);flex-shrink:0" aria-hidden="true"></i>
           <div style="flex:1;font-size:13px;color:var(--amber-text)">
@@ -356,7 +367,7 @@ input:focus,select:focus{border-color:var(--text)}
               <button class="btn btn-primary btn-sm" onclick="addStudent()">Enregistrer</button>
               <button class="btn btn-sm" onclick="document.getElementById('addStudentForm').style.display='none'">Annuler</button>
             </div>
-            <div class="notice"><i class="ti ti-info-circle"></i> Les crédits s'ajoutent dans l'onglet "Crédits & paiements".</div>
+            <div class="notice"><i class="ti ti-info-circle"></i> Les règlements s'ajoutent dans l'onglet "Réservations & paiements".</div>
           </div>
         </div>
         <div class="card" style="padding:.5rem 1.25rem"><div id="studentList"></div></div>
@@ -365,8 +376,8 @@ input:focus,select:focus{border-color:var(--text)}
       <!-- CREDITS -->
       <div id="adminTab-credits" style="display:none">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
-          <span class="section-title" style="margin:0">Achats de crédits</span>
-          <button class="btn btn-sm btn-primary" onclick="showNewPurchaseModal()"><i class="ti ti-plus"></i> Nouvel achat</button>
+          <span class="section-title" style="margin:0">Règlements par élève</span>
+          <button class="btn btn-sm btn-primary" onclick="showNewPurchaseModal()"><i class="ti ti-plus"></i> Nouveau règlement</button>
         </div>
         <div id="creditPurchaseList"></div>
       </div>
@@ -415,7 +426,12 @@ import { getFirestore,collection,doc,getDocs,addDoc,updateDoc,deleteDoc,query,wh
 import { getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const ADMIN_EMAIL="virginie.ternois@gmail.com";
-const CANCEL_HOURS_LIMIT=48;
+const PRICE_PER_COURSE=35;        // tarif unique d'un cours
+const PAID_HIDE_DAYS=90;          // élève : échéances payées depuis plus de 90 jours masquées de la liste
+const REMINDER_DAYS=7;            // élève : mention « prochaine échéance » à côté du titre, dans les 7 jours
+const RELANCE_DAYS=7;             // admin « À relancer » : échéances dans 7 jours ou moins
+const CANCEL_HOURS_LIMIT=48;      // moins de 48 h : annulation impossible pour l'élève
+const CANCEL_DIRECT_HOURS=7*24;   // 7 jours ou plus : l'élève annule seul ; entre les deux : demande à valider
 const AUTO_CONFIRM_COUNT=3;
 const UPCOMING_DAYS=14;
 
@@ -463,6 +479,11 @@ function injectInfoSections(){
   if(tpl&&studentZone) studentZone.appendChild(tpl.content.cloneNode(true));
 }
 function today(){return toISO(new Date());}
+function purchaseLabel(cp){
+  const ref=(cp.reference||'').trim();
+  if(cp.creditsBought)return ref&&ref!=='Achat'?`Anciens crédits · ${ref}`:'Anciens crédits';
+  return (!ref||ref==='Règlement')?'Séance(s) à régler':ref;
+}
 function getPmtStatus(pmt){if(!pmt)return'pending';if(pmt.status==='paid')return'paid';if(pmt.date&&new Date(pmt.date+'T23:59:59')<new Date())return'overdue';return'pending';}
 
 onAuthStateChanged(auth,user=>{
@@ -511,7 +532,7 @@ async function loadAll(){
     safe(()=>fsGetAll("slots")),
     safe(()=>fsGetAll("students")),
     safe(()=>fsGetAll("bookings")),
-    safe(()=>fsGetWhere("cancelRequests","status","==","pending")),
+    safe(()=>fsGetWhere("cancelRequests","status","in",["pending","auto"])),
     safe(()=>fsGetAll("creditPurchases")),
     safe(()=>fsGetAll("notifications")),
   ]);
@@ -665,14 +686,14 @@ window.addExclusion=async function(periodId){
       if(!confirmed)return;
       // Auto-refund and notify
       for(const b of slotBk){
-        await fsUpdate("bookings",b.id,{status:'cancelled'});
+        await fsUpdate("bookings",b.id,{status:'cancelled',cancelledAt:new Date().toISOString(),cancelledBy:'admin (créneau supprimé)'});
         b.status='cancelled';
         const st=students.find(x=>x.id===b.studentId);
-        if(st){await fsUpdate("students",st.id,{credits:st.credits+1});st.credits++;}
+        if(st&&b.viaCredit!==false){await fsUpdate("students",st.id,{credits:st.credits+1});st.credits++;}
       }
       // Add notification for affected students
       for(const b of slotBk){
-        await fsAdd("notifications",{studentId:b.studentId,type:'slot_cancelled',message:`Le cours du ${formatDateFr(v)} a été annulé. Votre crédit a été restitué.`,date:v,read:false,createdAt:new Date().toISOString()});
+        await fsAdd("notifications",{studentId:b.studentId,type:'slot_cancelled',message:`Le cours du ${formatDateFr(v)} a été annulé.${b.viaCredit!==false?' Ce cours reste disponible dans votre forfait.':''}`,date:v,read:false,createdAt:new Date().toISOString()});
       }
     }
     await fsDelete("slots",existing.id);
@@ -752,43 +773,90 @@ window.saveNewPeriod=async function(){
   closeGenericModal();renderAdmin();showToast("Période créée !");
 };
 
-// ── NEW YEAR MODAL ───────────────────────────────────────────
+// ── NOUVELLE ANNÉE SCOLAIRE : sauvegarde + remise à zéro ─────
+async function inBatches(items,fn,size=10){for(let i=0;i<items.length;i+=size){await Promise.all(items.slice(i,i+size).map(fn));}}
+window.nyToggleAll=function(v){document.querySelectorAll('.ny-keep').forEach(c=>{c.checked=v;});updateNewYearSummary();};
+window.updateNewYearSummary=function(){
+  const el=document.getElementById('nySummary');if(!el)return;
+  const keep=new Set([...document.querySelectorAll('.ny-keep')].filter(c=>c.checked).map(c=>c.value));
+  const unpaid=students.reduce((n,st)=>n+studentStats(st.id).resteDu,0);
+  el.innerHTML=`<strong>Ce qui sera fait :</strong><br>
+    • ${keep.size} élève(s) conservé(s), compteurs et crédits remis à zéro<br>
+    • ${students.length-keep.size} élève(s) supprimé(s)<br>
+    • ${bookings.length} réservation(s), ${creditPurchases.length} règlement(s)/achat(s) et ${cancelRequests.length} demande(s) d'annulation supprimés<br>
+    • ${periods.length} période(s) et ${slots.length} créneau(x) archivés
+    ${unpaid>0?`<br><span style="color:var(--red-text)">• Attention : ${unpaid.toFixed(0)} € restent à régler au total, ils seront effacés.</span>`:''}`;
+};
 window.showNewYearModal=function(){
-  document.getElementById('genericModalTitle').textContent='Démarrer une nouvelle année';
+  const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  const rows=students.map(st=>{
+    const s=studentStats(st.id);
+    const tags=[s.resteDu>0?`<span style="color:var(--red-text)">${s.resteDu.toFixed(0)} € à régler</span>`:'',s.toReserve>0?`${s.toReserve} à réserver`:'',s.upcoming>0?`${s.upcoming} à venir`:''].filter(Boolean).join(' · ');
+    return `<label style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:.5px solid var(--border);font-size:13px;cursor:pointer"><input type="checkbox" class="ny-keep" value="${st.id}" checked onchange="updateNewYearSummary()" style="width:auto"><span style="flex:1">${esc(st.name)}</span><span style="font-size:11px;color:var(--text2)">${tags||'—'}</span></label>`;
+  }).join('');
+  document.getElementById('genericModalTitle').textContent='Démarrer une nouvelle année scolaire';
   document.getElementById('genericModalContent').innerHTML=`
     <div style="background:var(--red-light);border:.5px solid var(--red-border);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--red-text)">
-      <i class="ti ti-alert-triangle"></i> Cette action va <strong>archiver</strong> toutes les périodes et créneaux actuels. Les élèves, crédits et historiques sont conservés. Les créneaux et réservations seront archivés et ne seront plus visibles.
+      <i class="ti ti-alert-triangle"></i> Cette action <strong>remet tous les comptes à zéro</strong> et supprime définitivement les réservations, règlements et échéances de la saison. Une sauvegarde est téléchargée automatiquement juste avant : conservez-la.
     </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><div style="font-size:12px;font-weight:500">Élèves à conserver</div><div style="font-size:11px"><a href="#" onclick="nyToggleAll(true);return false">Tout cocher</a> · <a href="#" onclick="nyToggleAll(false);return false">Tout décocher</a></div></div>
+    <div style="max-height:220px;overflow:auto;border:.5px solid var(--border);border-radius:var(--radius);padding:0 10px;margin-bottom:10px">${rows||'<div class="empty">Aucun élève.</div>'}</div>
+    <div id="nySummary" style="font-size:12px;color:var(--text2);background:var(--bg2);border-radius:var(--radius);padding:10px 12px;margin-bottom:12px"></div>
     <div style="font-size:12px;color:var(--text2);margin-bottom:8px">Pour confirmer, tapez <strong>NOUVELLE ANNÉE</strong> :</div>
     <input type="text" id="newYearConfirm" placeholder="Tapez ici pour confirmer…" style="width:100%;margin-bottom:12px">
     <div style="display:flex;gap:8px">
-      <button class="btn btn-danger" onclick="confirmNewYear()" style="flex:1">Archiver et recommencer</button>
+      <button class="btn btn-danger" id="nyGo" onclick="confirmNewYear()" style="flex:1">Sauvegarder et remettre à zéro</button>
       <button class="btn" onclick="closeGenericModal()">Annuler</button>
     </div>`;
   document.getElementById('genericModal').classList.add('open');
+  updateNewYearSummary();
 };
 
 window.confirmNewYear=async function(){
   const val=document.getElementById('newYearConfirm').value.trim();
   if(val!=='NOUVELLE ANNÉE'){showToast("Saisie incorrecte");return;}
-  for(const p of periods)await fsUpdate("periods",p.id,{archived:true});
-  for(const s of slots)await fsUpdate("slots",s.id,{archived:true});
-  periods=[];slots=[];activePeriodId=null;
-  closeGenericModal();renderAdmin();renderStudentCalendar();showToast("Nouvelle année démarrée !");
+  const keep=new Set([...document.querySelectorAll('.ny-keep')].filter(c=>c.checked).map(c=>c.value));
+  const go=document.getElementById('nyGo');if(go)go.disabled=true;
+  const box=document.getElementById('genericModalContent');
+  try{
+    showToast("Sauvegarde en cours…");
+    const saved=await exportData();
+    if(!saved){showToast("Sauvegarde impossible : rien n'a été modifié.");if(go)go.disabled=false;return;}
+    box.innerHTML='<div id="nyProgress" style="font-size:13px;padding:16px 0">Remise à zéro en cours… ne fermez pas cette page.</div>';
+    const prog=t=>{const e=document.getElementById('nyProgress');if(e)e.textContent=t;};
+    prog('Suppression des réservations…');          await inBatches(bookings,b=>fsDelete("bookings",b.id));
+    prog("Suppression des demandes d'annulation…"); await inBatches(cancelRequests,r=>fsDelete("cancelRequests",r.id));
+    prog('Suppression des règlements et achats…');  await inBatches(creditPurchases,c=>fsDelete("creditPurchases",c.id));
+    prog('Suppression des notifications…');         await inBatches(notifications||[],n=>fsDelete("notifications",n.id));
+    prog('Mise à jour des élèves…');
+    await inBatches(students,st=>keep.has(st.id)?fsUpdate("students",st.id,{credits:0}):fsDelete("students",st.id));
+    prog('Archivage des périodes et des créneaux…');
+    await inBatches(periods,p=>fsUpdate("periods",p.id,{archived:true}));
+    await inBatches(slots,sl=>fsUpdate("slots",sl.id,{archived:true}));
+    students=students.filter(st=>keep.has(st.id));students.forEach(st=>{st.credits=0;});
+    bookings=[];cancelRequests=[];creditPurchases=[];notifications=[];periods=[];slots=[];activePeriodId=null;
+    closeGenericModal();renderAdmin();renderStudentCalendar();showToast("Nouvelle année démarrée !");
+  }catch(e){
+    console.error(e);
+    box.innerHTML='<div style="font-size:13px;color:var(--red-text);padding:16px 0">Une erreur est survenue en cours de route. La sauvegarde a bien été téléchargée. Rechargez la page et vérifiez l\'état des données avant de recommencer.</div><button class="btn" onclick="closeGenericModal()">Fermer</button>';
+  }
 };
 
 // ── CALENDAR BUILDER ─────────────────────────────────────────
-function buildCalendarHtml(period,pSlots,excl,clickFn,studentId){
+function buildCalendarHtml(period,pSlots,excl,clickFn,studentId,opts={}){
   if(!pSlots.length)return'<div class="empty">Aucun créneau. Cliquez "Générer créneaux".</div>';
   const slotByDate={};pSlots.forEach(s=>slotByDate[s.date]=s);
   const exclSet=new Set(excl);
   const start=parseDate(period.startDate),end=parseDate(period.endDate);
   const firstMonth=new Date(start.getFullYear(),start.getMonth(),1);
   const lastMonth=new Date(end.getFullYear(),end.getMonth(),1);
-  let html='',cur=new Date(firstMonth);
+  let html='',cur=new Date(firstMonth),monthIdx=0;
   while(cur<=lastMonth){
     const y=cur.getFullYear(),m=cur.getMonth();
-    html+=`<div class="month-block"><div class="month-title">${MONTHS[m]} ${y}</div><div class="cal-grid">`;
+    if(opts.fromMonth&&cur<opts.fromMonth){cur.setMonth(cur.getMonth()+1);continue;}
+    if(opts.hideEmptyMonths){const pre=`${y}-${String(m+1).padStart(2,'0')}`;if(!pSlots.some(sl=>sl.date.startsWith(pre))){cur.setMonth(cur.getMonth()+1);continue;}}
+    monthIdx++;
+    html+=`<div class="month-block${opts.maxMonths&&monthIdx>opts.maxMonths?' extra-month':''}"><div class="month-title">${MONTHS[m]} ${y}</div><div class="cal-grid">`;
     DAYS_FR.forEach(d=>html+=`<div class="cal-header">${d}</div>`);
     const startDow=(new Date(y,m,1).getDay()+6)%7;
     for(let i=0;i<startDow;i++)html+=`<div class="cal-day empty"></div>`;
@@ -809,6 +877,7 @@ function buildCalendarHtml(period,pSlots,excl,clickFn,studentId){
           fsUpdate("slots",slot.id,{confirmed:true}).catch(()=>{});
         }
         const isBooked=studentId&&slotBk.some(b=>b.studentId===studentId);
+        if(isBooked)cls+=' my-day';
         const hasCancelReq=studentId&&cancelRequests.some(r=>r.slotId===slot.id&&r.studentId===studentId&&r.status==='pending');
         let chipCls;
         if(slot.closed||slot.archived)chipCls='chip-closed';
@@ -827,6 +896,7 @@ function buildCalendarHtml(period,pSlots,excl,clickFn,studentId){
         }
         const lbl=slot.label.split(' ')[1];
         inner+=`<span class="slot-chip ${chipCls}">${lbl}<br>${taken}/${slot.maxPlaces}</span>`;
+        if(isBooked)inner+=`<span class="my-mark ${slot.confirmed?'ok':'wait'}" role="img" aria-label="${slot.confirmed?'Réservé, cours confirmé':'Réservé, en attente de confirmation'}">✓</span>`;
       }
       const onclick=slot?`onclick="${clickFn}('${slot.id}')"`:'';
       html+=`<div class="${cls}" ${onclick}>${inner}</div>`;
@@ -924,9 +994,9 @@ window.adminUnconfirmSlot=async function(slotId){
 window.adminCancelBooking=async function(bookingId,slotId){
   if(!confirm("Confirmer l'annulation administrative ?"))return;
   const booking=bookings.find(b=>b.id===bookingId);if(!booking)return;
-  await fsUpdate("bookings",bookingId,{status:'cancelled'});booking.status='cancelled';
+  await fsUpdate("bookings",bookingId,{status:'cancelled',cancelledAt:new Date().toISOString(),cancelledBy:'admin'});booking.status='cancelled';
   const st=students.find(x=>x.id===booking.studentId);
-  if(st){await fsUpdate("students",st.id,{credits:st.credits+1});st.credits++;}
+  if(st&&booking.viaCredit!==false){await fsUpdate("students",st.id,{credits:st.credits+1});st.credits++;}
   const remaining=bookings.filter(b=>b.slotId===slotId&&b.status==='confirmed').length;
   if(remaining<AUTO_CONFIRM_COUNT){const slot=slots.find(x=>x.id===slotId);if(slot&&slot.confirmed){await fsUpdate("slots",slotId,{confirmed:false});slot.confirmed=false;}}
   closeModal();renderAdmin();showToast("Annulation effectuée");
@@ -937,6 +1007,22 @@ async function renderCancelPendingList(){
   const el=document.getElementById('cancelPendingList');
   const banner=document.getElementById('cancelAlertBanner');
   const pending=cancelRequests.filter(r=>r.status==='pending');
+  // Bandeau : annulations faites directement par les élèves (plus de 7 jours avant)
+  const autoBanner=document.getElementById('autoCancelBanner');
+  if(autoBanner){
+    const autos=cancelRequests.filter(r=>r.status==='auto');
+    if(autos.length){
+      const det=autos.map(r=>{
+        const st=students.find(x=>x.id===r.studentId);
+        const sl=slots.find(x=>x.id===r.slotId);
+        if(!st||!sl)return'';
+        const d=parseDate(sl.date);
+        return`${st.name} · ${d.getDate()} ${MONTHS[d.getMonth()].slice(0,3)} ${sl.time}`;
+      }).filter(Boolean).join(' — ');
+      document.getElementById('autoCancelDetails').textContent=det||'Voir le planning';
+      autoBanner.style.display='flex';
+    }else{autoBanner.style.display='none';}
+  }
   // Update banner
   if(banner){
     if(pending.length){
@@ -977,11 +1063,11 @@ window.approveCancel=async function(requestId){
     return;
   }
   await fsUpdate("cancelRequests",requestId,{status:'approved'});
-  await fsUpdate("bookings",req.bookingId,{status:'cancelled'});
+  await fsUpdate("bookings",req.bookingId,{status:'cancelled',cancelledAt:new Date().toISOString(),cancelledBy:'admin (demande validée)'});
   req.status='approved';
   booking.status='cancelled';
   const st=students.find(x=>x.id===req.studentId);
-  if(st){await fsUpdate("students",st.id,{credits:st.credits+1});st.credits++;}
+  if(st&&booking.viaCredit!==false){await fsUpdate("students",st.id,{credits:st.credits+1});st.credits++;}
   // Rejeter automatiquement les doublons sur la même réservation
   const duplicates=cancelRequests.filter(x=>x.id!==requestId&&x.bookingId===req.bookingId&&x.status==='pending');
   for(const dup of duplicates){
@@ -990,7 +1076,7 @@ window.approveCancel=async function(requestId){
   cancelRequests=cancelRequests.filter(x=>x.id!==requestId&&!duplicates.find(d=>d.id===x.id));
   const remaining=bookings.filter(b=>b.slotId===req.slotId&&b.status==='confirmed').length;
   if(remaining<AUTO_CONFIRM_COUNT){const slot=slots.find(x=>x.id===req.slotId);if(slot&&slot.confirmed){await fsUpdate("slots",req.slotId,{confirmed:false});slot.confirmed=false;}}
-  renderAdmin();showToast("Annulation acceptée, 1 crédit restitué");
+  renderAdmin();showToast("Annulation acceptée");
 };
 window.rejectCancel=async function(requestId){
   await fsUpdate("cancelRequests",requestId,{status:'rejected'});
@@ -1001,17 +1087,29 @@ window.rejectCancel=async function(requestId){
 // ── STUDENTS ─────────────────────────────────────────────────
 function studentStats(studentId){
   const purchases=creditPurchases.filter(cp=>cp.studentId===studentId);
-  const totalBought=purchases.reduce((s,cp)=>s+(cp.creditsBought||0),0);
-  const used=bookings.filter(b=>b.studentId===studentId&&b.status==='confirmed').length;
+  const totalBought=purchases.reduce((n,cp)=>n+(cp.creditsBought||0),0);
+  const confirmed=bookings.filter(b=>b.studentId===studentId&&b.status==='confirmed');
+  const used=confirmed.length;
   const st=students.find(x=>x.id===studentId);
-  const remaining=st?st.credits:0;
-  let pendingCount=0,pendingAmount=0;
+  const remaining=st?(st.credits||0):0;                 // cours restants d'un ancien forfait
+  let pendingCount=0,pendingAmount=0,plannedNew=0,paidNew=0,paidAll=0,pendingForfait=0;
   purchases.forEach(cp=>{
     (cp.payments||[]).forEach(pmt=>{
-      if(pmt&&getPmtStatus(pmt)!=='paid'){pendingCount++;pendingAmount+=(parseFloat(pmt.amount)||0);}
+      if(!pmt)return;
+      const amt=parseFloat(pmt.amount)||0,paid=getPmtStatus(pmt)==='paid';
+      if(paid)paidAll+=amt;
+      if(!cp.creditsBought){plannedNew+=amt;if(paid)paidNew+=amt;}   // règlement sans forfait
+      else if(!paid)pendingForfait+=amt;                            // reste d'un ancien forfait
+      if(!paid){pendingCount++;pendingAmount+=amt;}
     });
   });
-  return{totalBought,used,remaining,pendingCount,pendingAmount};
+  let upcoming=0,done=0;
+  confirmed.forEach(b=>{const sl=slots.find(x=>x.id===b.slotId);if(sl&&hoursUntil(sl.date,sl.time)>0)upcoming++;else done++;});
+  const due=confirmed.filter(b=>b.viaCredit===false).length*PRICE_PER_COURSE;   // s'incrémente à chaque cours réservé hors forfait
+  const resteDu=Math.max(0,Math.max(due,plannedNew)-paidNew)+pendingForfait;    // ne dépend pas de la saisie des échéances
+  const toBook=Math.max(0,Math.floor((plannedNew-due)/PRICE_PER_COURSE));       // cours déjà couverts par un règlement, pas encore réservés
+  const toPlan=Math.max(0,due-plannedNew);                                      // part du dû sans échéance définie
+  return{totalBought,used,remaining,pendingCount,pendingAmount,upcoming,done,due,plannedNew,paidNew,paidAll,pendingForfait,resteDu,toBook,toPlan,toReserve:remaining+toBook};
 }
 
 function renderStudents(){
@@ -1027,10 +1125,10 @@ function renderStudents(){
         <div class="avatar">${initials}</div>
         <div style="flex:1">
           <div style="font-weight:500;font-size:13px">${st.name}</div>
-          <div style="font-size:11px;color:var(--text2);margin-top:2px">Achetés : ${s.totalBought} · Séances : ${s.used} · Restants : ${s.remaining}${s.pendingCount>0?` · <span style="color:var(--red-text)">${s.pendingCount} échéance(s) en attente (${s.pendingAmount.toFixed(0)} €)</span>`:''}</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px">Effectués : ${s.done} · À venir : ${s.upcoming}${s.toReserve>0?` · À réserver : ${s.toReserve}`:''}${s.pendingCount>0?` · <span style="color:var(--red-text)">${s.pendingCount} échéance(s) en attente</span>`:''}</div>
           <div style="margin-top:4px"><span class="url-chip" onclick="copyUrl('${url}')"><i class="ti ti-link"></i> Copier lien</span></div>
         </div>
-        <span style="background:${low?'var(--red-light)':'var(--teal-light)'};color:${low?'var(--red-text)':'var(--teal-dark)'};border-radius:var(--radius);padding:2px 8px;font-size:12px;font-weight:500">${s.remaining} crédit(s)</span>
+        <span style="background:${s.resteDu>0?'var(--red-light)':'var(--teal-light)'};color:${s.resteDu>0?'var(--red-text)':'var(--teal-dark)'};border-radius:var(--radius);padding:2px 8px;font-size:12px;font-weight:500;white-space:nowrap">${s.resteDu>0?s.resteDu.toFixed(0)+' € à régler':'À jour'}</span>
         <button class="btn btn-sm" onclick="toggleEditStudent('${st.id}')"><i class="ti ti-pencil"></i></button>
         <button class="btn btn-sm btn-danger" onclick="removeStudent('${st.id}')"><i class="ti ti-trash"></i></button>
       </div>
@@ -1095,22 +1193,37 @@ window.addStudent=async function(){
 function renderCreditPurchases(){
   const el=document.getElementById('creditPurchaseList');
   if(!students.length){el.innerHTML='<div class="empty">Aucun élève.</div>';return;}
-  let html='';
+  const box=(v,l,c)=>`<div class="sstats-box"><span class="sstats-val"${c?` style="color:${c}"`:''}>${v}</span><span class="sstats-lbl">${l}</span></div>`;
+  const relance=[];
+  students.forEach(st=>creditPurchases.filter(cp=>cp.studentId===st.id).forEach(cp=>(cp.payments||[]).forEach(pm=>{
+    if(!pm||pm.status==='paid'||!pm.date)return;
+    const overdue=getPmtStatus(pm)==='overdue';
+    const days=Math.ceil((new Date(pm.date+'T23:59:59')-new Date())/86400000);
+    if(overdue||days<=RELANCE_DAYS)relance.push({name:st.name,amount:parseFloat(pm.amount)||0,date:pm.date,overdue,days});
+  })));
+  relance.sort((a,b)=>a.date.localeCompare(b.date));
+  let relanceHtml='';
+  if(relance.length){
+    relanceHtml=`<div class="card" style="margin-bottom:1rem"><div class="section-title" style="margin-bottom:4px">À relancer</div>`+relance.map(r=>{
+      const lbl=r.overdue?'En retard':(r.days<=1?"Aujourd'hui":`Dans ${r.days} jours`);
+      const col=r.overdue?'var(--red-text)':'#854F0B',bg=r.overdue?'var(--red-light)':'#FAEEDA';
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:.5px solid var(--border);font-size:13px"><div><strong>${r.name}</strong> <span style="color:var(--text2);font-size:12px">· ${r.amount.toFixed(0)} € · ${formatDateFr(r.date)}</span></div><span style="font-size:11px;font-weight:500;color:${col};background:${bg};border-radius:20px;padding:2px 10px">${lbl}</span></div>`;
+    }).join('')+`<div style="font-size:11px;color:var(--text2);margin-top:8px">Les élèves voient aussi un bandeau dans leur espace.</div></div>`;
+  }
+  let html=relanceHtml;
   students.forEach(st=>{
     const s=studentStats(st.id);
     const purchases=creditPurchases.filter(cp=>cp.studentId===st.id);
     html+=`<div style="margin-bottom:1.5rem">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:8px">
         <div style="font-weight:500;font-size:14px">${st.name}</div>
-        <button class="btn btn-sm btn-primary" onclick="showNewPurchaseModal('${st.id}','${st.name.replace(/'/g,"\\'")}')"><i class="ti ti-plus"></i> Ajouter un achat</button>
+        <button class="btn btn-sm btn-primary" onclick="showNewPurchaseModal('${st.id}','${st.name.replace(/'/g,"\\'")}')"><i class="ti ti-plus"></i> Ajouter un règlement</button>
       </div>
       <div class="student-stats">
-        <div class="sstats-box"><span class="sstats-val">${s.totalBought}</span><span class="sstats-lbl">achetés</span></div>
-        <div class="sstats-box"><span class="sstats-val">${s.used}</span><span class="sstats-lbl">séances réservées</span></div>
-        <div class="sstats-box"><span class="sstats-val" style="color:${s.remaining<2?'var(--red-text)':'var(--teal-mid)'}">${s.remaining}</span><span class="sstats-lbl">crédits restants</span></div>
-        <div class="sstats-box"><span class="sstats-val" style="color:${s.pendingCount>0?'var(--red-text)':'var(--teal-mid)'}">${s.pendingCount}</span><span class="sstats-lbl">échéance(s) en attente</span></div>
-        <div class="sstats-box"><span class="sstats-val" style="color:${s.pendingAmount>0?'var(--red-text)':'var(--teal-mid)'}">${s.pendingAmount.toFixed(0)} €</span><span class="sstats-lbl">montant restant</span></div>
-      </div>`;
+        ${box(s.done,'cours effectués')}${box(s.upcoming,'planifiés à venir')}${s.toReserve>0?box(s.toReserve,'à réserver',s.toReserve<2?'var(--red-text)':'var(--teal-mid)'):''}${(s.due>0||s.plannedNew>0)?box(s.due+' €','montant dû'):''}${s.paidAll>0?box(s.paidAll.toFixed(0)+' €','déjà réglé'):''}${box(s.resteDu.toFixed(0)+' €','reste à régler',s.resteDu>0?'var(--red-text)':'var(--teal-mid)')}
+      </div>
+      ${s.toPlan>0?`<div class="notice-warning" style="margin-bottom:6px">Échéances à définir : ${s.toPlan.toFixed(0)} € (dû ${s.due} €, échéances saisies ${s.plannedNew.toFixed(0)} €). Le montant dû reste inchangé.</div>`:(s.toBook>0?`<div class="notice" style="margin-bottom:6px;background:var(--teal-light);color:var(--teal-dark)">Les règlements saisis couvrent encore ${s.toBook} cours à réserver.</div>`:'')}
+    </div>`;
     if(!purchases.length){html+=`<div class="notice">Aucun achat enregistré.</div>`;}
     else{
       purchases.forEach(cp=>{
@@ -1122,12 +1235,11 @@ function renderCreditPurchases(){
             <div style="flex:1;min-width:0">
               <input type="text" value="${cp.reference||'Achat'}" style="font-weight:500;font-size:13px;width:100%;border:none;border-bottom:.5px solid var(--border);border-radius:0;padding:2px 0;background:transparent;margin-bottom:6px" onchange="setPurchaseRef('${cp.id}',this.value)" title="Référence">
               <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-                <span style="font-size:11px;color:var(--text2)">${formatDateFr(cp.purchaseDate)}</span>
+                ${cp.creditsBought?`<input type="number" value="${cp.creditsBought||0}" min="0" style="width:50px;font-size:11px;padding:2px 5px;border:.5px solid var(--border)" onchange="setPurchaseCredits('${cp.id}','${st.id}',${cp.creditsBought||0},this.value)" title="Crédits achetés"> <span style="font-size:11px;color:var(--text2)">crédits</span>
                 <span style="font-size:11px;color:var(--text2)">·</span>
-                <input type="number" value="${cp.creditsBought||0}" min="0" style="width:50px;font-size:11px;padding:2px 5px;border:.5px solid var(--border)" onchange="setPurchaseCredits('${cp.id}','${st.id}',${cp.creditsBought||0},this.value)" title="Crédits achetés"> <span style="font-size:11px;color:var(--text2)">crédits</span>
-                <span style="font-size:11px;color:var(--text2)">·</span>
-                <input type="number" value="${totalAmt}" min="0" style="width:65px;font-size:11px;padding:2px 5px;border:.5px solid var(--border)" onchange="setPurchaseTotal('${cp.id}',this.value)" title="Montant total €"> <span style="font-size:11px;color:var(--text2)">€</span>
-                <span style="font-size:11px;color:var(--text2)">· ${pmts.length} échéance(s) · ${paidCount} payée(s)</span>
+                `:''}
+                ${cp.creditsBought?`<input type="number" value="${totalAmt}" min="0" style="width:65px;font-size:11px;padding:2px 5px;border:.5px solid var(--border)" onchange="setPurchaseTotal('${cp.id}',this.value)" title="Montant total €"> <span style="font-size:11px;color:var(--text2)">€</span>`:''}
+                <span style="font-size:11px;color:var(--text2)">${cp.creditsBought?'· ':''}${pmts.length} échéance(s) · ${paidCount} payée(s)</span>
               </div>
             </div>
             <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-left:8px">
@@ -1160,20 +1272,22 @@ function renderCreditPurchases(){
 }
 
 window.showNewPurchaseModal=function(studentId,studentName){
+  const _sd=studentId?studentStats(studentId):null;
+  const pre=(_sd&&_sd.toPlan>0)?_sd.toPlan:PRICE_PER_COURSE;
   const selOptions=students.map(s=>`<option value="${s.id}"${s.id===studentId?' selected':''}>${s.name}</option>`).join('');
-  document.getElementById('genericModalTitle').textContent='Nouvel achat de crédits';
+  document.getElementById('genericModalTitle').textContent='Nouveau règlement';
   document.getElementById('genericModalContent').innerHTML=`
     <div style="display:flex;flex-direction:column;gap:12px;font-size:13px">
       <div class="field"><label>Élève</label><select id="pmStudentId" style="width:100%">${selOptions}</select></div>
-      <div class="field"><label>Référence</label><input type="text" id="pmRef" placeholder="ex: Trimestre automne 2025" style="width:100%"></div>
+      <div class="field"><label>Référence</label><input type="text" id="pmRef" placeholder="ex: Trimestre automne 2026" style="width:100%"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <div class="field"><label>Date d'achat</label><input type="date" id="pmDate" value="${today()}" style="width:auto"></div>
-        <div class="field"><label>Nb de crédits</label><input type="number" id="pmCredits" value="10" min="1" style="width:80px" oninput="updatePmCalc()"></div>
-        <div class="field"><label>Montant total (€)</label><input type="number" id="pmTotal" value="350" min="0" style="width:90px" oninput="updatePmCalc()"></div>
+        <input type="hidden" id="pmDate" value="${today()}">
+        <input type="hidden" id="pmCredits" value="0">
+        <div class="field"><label>Montant total (€)</label><input type="number" id="pmTotal" value="${pre}" min="0" style="width:90px" oninput="updatePmCalc()"></div>
       </div>
       <div class="field"><label>Nb d'échéances</label>
         <div style="display:flex;gap:6px;margin-top:4px">
-          ${[1,2,3,4,5].map(n=>`<button class="nb-btn${n===3?' selected':''}" onclick="selectNbEch(${n})" id="nbBtn${n}">${n}</button>`).join('')}
+          ${[1,2,3,4,5].map(n=>`<button class="nb-btn${n===1?' selected':''}" onclick="selectNbEch(${n})" id="nbBtn${n}">${n}</button>`).join('')}
         </div>
       </div>
       <div style="background:var(--bg2);border-radius:var(--radius);padding:8px 12px;font-size:12px;color:var(--text2)" id="pmCalcInfo">3 échéances de <strong style="color:var(--text)">117 €</strong> seront créées automatiquement.</div>
@@ -1182,7 +1296,8 @@ window.showNewPurchaseModal=function(studentId,studentName){
         <button class="btn" onclick="closeGenericModal()">Annuler</button>
       </div>
     </div>`;
-  window._selectedNbEch=3;
+  window._selectedNbEch=1;
+  updatePmCalc();
   document.getElementById('genericModal').classList.add('open');
 };
 
@@ -1200,17 +1315,17 @@ window.updatePmCalc=function(){
   const nb=window._selectedNbEch||1;
   const perEch=(total/nb).toFixed(0);
   const el=document.getElementById('pmCalcInfo');
-  if(el)el.innerHTML=`${nb} échéance(s) de <strong style="color:var(--text)">${perEch} €</strong> seront créées automatiquement.`;
+  if(el)el.innerHTML=`${nb} échéance(s) de <strong style="color:var(--text)">${perEch} €</strong> seront créées automatiquement. Ce règlement équivaut à <strong style="color:var(--text)">${Math.floor(total/PRICE_PER_COURSE)} cours</strong> de ${PRICE_PER_COURSE} €.`;
 };
 
 window.savePurchase=async function(){
   const studentId=document.getElementById('pmStudentId').value;
-  const reference=document.getElementById('pmRef').value.trim()||'Achat';
+  const reference=document.getElementById('pmRef').value.trim()||'Règlement';
   const purchaseDate=document.getElementById('pmDate').value;
   const creditsBought=parseInt(document.getElementById('pmCredits').value)||0;
   const totalAmount=parseFloat(document.getElementById('pmTotal').value)||0;
   const nbEch=window._selectedNbEch||1;
-  if(!studentId||!creditsBought){showToast("Remplissez tous les champs");return;}
+  if(!studentId||!totalAmount){showToast("Indiquez l'élève et le montant");return;}
   const st=students.find(x=>x.id===studentId);if(!st)return;
   const perEch=parseFloat((totalAmount/nbEch).toFixed(2));
   const payments=Array.from({length:nbEch},()=>({status:'pending',date:'',amount:perEch,note:''}));
@@ -1219,7 +1334,7 @@ window.savePurchase=async function(){
   const newCredits=st.credits+creditsBought;
   await fsUpdate("students",studentId,{credits:newCredits});st.credits=newCredits;
   closeGenericModal();renderCreditPurchases();renderStudents();
-  showToast(`${creditsBought} crédits ajoutés à ${st.name}`);
+  showToast(`Règlement enregistré pour ${st.name}`);
 };
 
 window.deletePurchase=async function(cpId,studentId,creditsBought){
@@ -1246,7 +1361,7 @@ window.setPurchaseCredits=async function(cpId,studentId,oldVal,newVal){
   const oldCredits=parseInt(oldVal)||0;
   const st=students.find(x=>x.id===studentId);
   // Vérification : total crédits achetés ne peut pas être inférieur aux réservations déjà faites
-  const usedBookings=bookings.filter(b=>b.studentId===studentId&&b.status==='confirmed').length;
+  const usedBookings=bookings.filter(b=>b.studentId===studentId&&b.status==='confirmed'&&b.viaCredit!==false).length;
   const totalBoughtOthers=creditPurchases.filter(cp2=>cp2.studentId===studentId&&cp2.id!==cpId).reduce((s,cp2)=>s+(cp2.creditsBought||0),0);
   const newTotal=totalBoughtOthers+newCredits;
   if(newTotal<usedBookings){
@@ -1299,6 +1414,8 @@ window.setPmtNote=async function(cpId,idx,val){
 };
 
 // ── STUDENT VIEW ─────────────────────────────────────────────
+function shortDate(d){const x=parseDate(d);return ['dim.','lun.','mar.','mer.','jeu.','ven.','sam.'][x.getDay()]+' '+x.getDate()+' '+MONTHS[x.getMonth()].slice(0,3).toLowerCase()+'.';}
+window.toggleHeroList=function(btn){const l=document.getElementById('heroList');if(!l)return;const open=l.classList.toggle('open');btn.textContent=open?'Réduire la liste':btn.dataset.label;};
 function renderHeroBanner(st){
   const s=studentStats(st.id);
   const allSlots=slots.filter(sl=>!sl.archived&&!sl.closed);
@@ -1313,20 +1430,16 @@ function renderHeroBanner(st){
           <div class="hero-name">Bonjour, ${st.name.split(' ')[0]} !</div>
         </div>
         <div style="text-align:right">
-          <div class="hero-credits-val">${s.remaining}</div>
-          <div class="hero-credits-lbl">crédit(s)</div>
+          <div class="hero-credits-val">${futureBooked.length}</div>
+          <div class="hero-credits-lbl">cours à venir</div>
         </div>
       </div>
-      ${next?`<div class="next-session">
-        <div class="next-session-lbl"><i class="ti ti-calendar" aria-hidden="true"></i> Prochaine séance réservée</div>
-        <div class="next-session-date">${formatFull(parseDate(next.date))} — ${next.time}</div>
-        <div class="next-session-status">${next.confirmed?'<i class="ti ti-circle-check"></i> Cours confirmé':'<i class="ti ti-clock"></i> En attente de confirmation'}</div>
+      ${futureBooked.length?`<div class="next-session hero-list" id="heroList">
+        <div class="next-session-lbl"><i class="ti ti-calendar" aria-hidden="true"></i> Mes prochaines séances</div>
+        <div class="hero-rows">${futureBooked.map((sl,i)=>`<div class="hero-row${i>=5?' extra':''}"><span>${shortDate(sl.date)} · ${sl.time}</span><span class="hero-st${sl.confirmed?' ok':''}">${sl.confirmed?'<i class="ti ti-circle-check" aria-hidden="true"></i> Confirmé':'<i class="ti ti-clock" aria-hidden="true"></i> En attente de confirmation'}</span></div>`).join('')}</div>
+        ${futureBooked.length>5?`<button class="hero-more-btn" data-label="Voir les ${futureBooked.length-5} autres séances" onclick="toggleHeroList(this)">Voir les ${futureBooked.length-5} autres séances</button>`:''}
       </div>`:`<div class="next-session" style="color:#9FE1CB;font-size:12px"><i class="ti ti-calendar-off" aria-hidden="true"></i> Aucune séance réservée prochainement</div>`}
-    </div>
-    <div class="stats-row">
-      <div class="stat-box"><span class="stat-val">${s.totalBought}</span><span class="stat-lbl">crédits achetés</span></div>
-      <div class="stat-box"><span class="stat-val">${s.used}</span><span class="stat-lbl">séances réservées</span></div>
-      <div class="stat-box"><span class="stat-val" style="color:${s.remaining<2?'var(--red-text)':'var(--teal-mid)'}">${s.remaining}</span><span class="stat-lbl">crédits restants</span></div>
+      ${s.toReserve>0?`<div class="hero-forfait"><i class="ti ti-info-circle" aria-hidden="true" style="margin-top:1px"></i><span>Il vous reste ${s.toReserve} cours à réserver dans le planning.</span></div>`:''}
     </div>`;
   renderEcheancier(st.id);
 }
@@ -1334,26 +1447,40 @@ function renderHeroBanner(st){
 function renderEcheancier(studentId){
   const zone=document.getElementById('echeancierZone');
   if(!zone)return;
+  const s=studentStats(studentId);
   const purchases=creditPurchases.filter(cp=>cp.studentId===studentId);
-  let rows=[];
+  const now=new Date();
+  let rows=[],soon=[];
   purchases.forEach(cp=>{
     (cp.payments||[]).forEach(pmt=>{
       if(!pmt)return;
-      rows.push({date:pmt.date,amount:pmt.amount,status:getPmtStatus(pmt),ref:cp.reference||'Achat'});
+      if(pmt.status==='paid'&&pmt.date&&(now-new Date(pmt.date+'T23:59:59'))/86400000>PAID_HIDE_DAYS)return;
+      rows.push({date:pmt.date,amount:pmt.amount,status:getPmtStatus(pmt),ref:purchaseLabel(cp)});
+      if(pmt.status!=='paid'&&pmt.date){const due=new Date(pmt.date+'T23:59:59');if(due>=now&&(due-now)/86400000<=REMINDER_DAYS)soon.push(pmt);}
     });
   });
-  if(!rows.length){zone.innerHTML='';return;}
-  rows.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
-  const statusInfo={paid:{label:'Payé',color:'var(--teal-mid)',bg:'var(--teal-light)'},overdue:{label:'En retard',color:'var(--red-text)',bg:'var(--red-light)'},pending:{label:'À venir',color:'#854F0B',bg:'#FAEEDA'}};
+  if(!rows.length&&s.due<=0){zone.innerHTML='';return;}
+  rows.sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999'));
+  if(s.toPlan>0)rows.push({date:'',amount:s.toPlan,status:'tbd',ref:'Séance(s) à régler'});
+  const statusInfo={paid:{label:'Payé',color:'var(--teal-mid)',bg:'var(--teal-light)'},overdue:{label:'En retard',color:'var(--red-text)',bg:'var(--red-light)'},pending:{label:'À venir',color:'#854F0B',bg:'#FAEEDA'},tbd:{label:'À définir',color:'var(--gray-text)',bg:'var(--gray-light)'}};
   const items=rows.map(r=>{
     const si=statusInfo[r.status];
+    const lbl=r.status==='tbd'?`${parseFloat(r.amount).toFixed(0)} €`:([r.date?formatDateFr(r.date):'',r.amount?parseFloat(r.amount).toFixed(0)+' €':''].filter(Boolean).join(' — ')||'—');
     return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:.5px solid var(--border);font-size:12px">
-      <div><div style="color:var(--text)">${r.date?formatDateFr(r.date):'—'}${r.amount?` — ${parseFloat(r.amount).toFixed(0)} €`:''}</div><div style="font-size:10px;color:var(--text2);margin-top:1px">${r.ref}</div></div>
+      <div><div style="color:var(--text)">${lbl}</div><div style="font-size:10px;color:var(--text2);margin-top:1px">${r.ref}</div></div>
       <span style="font-size:10px;font-weight:500;color:${si.color};background:${si.bg};border-radius:20px;padding:2px 10px">${si.label}</span>
     </div>`;
   }).join('');
+  const line=(l,v,strong,color)=>`<div style="display:flex;justify-content:space-between;align-items:baseline;padding:3px 0;font-size:${strong?'14':'12'}px;${strong?'font-weight:600;':''}${color?'color:'+color+';':''}"><span${strong?'':' style="color:var(--text2)"'}>${l}</span><span>${v}</span></div>`;
+  const nb=Math.round(s.due/PRICE_PER_COURSE);
+  const summary=(s.due>0||s.paidAll>0||s.resteDu>0)?`<div style="background:var(--bg2);border-radius:var(--radius);padding:10px 12px;margin-bottom:6px">
+    ${line('Montant restant dû',s.resteDu.toFixed(0)+' €',true,s.resteDu>0?'var(--red-text)':'var(--teal-mid)')}
+  </div>`:'';
+  soon.sort((a,b)=>a.date.localeCompare(b.date));
+  const soonTag=soon.length?`<span style="font-size:11px;font-weight:500;color:var(--teal-dark);background:var(--teal-light);border-radius:20px;padding:2px 10px">Prochaine échéance le ${formatDateFr(soon[0].date)}</span>`:'';
   zone.innerHTML=`<div style="background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem">
-    <div style="font-size:13px;font-weight:500;color:var(--teal-dark);margin-bottom:6px;display:flex;align-items:center;gap:6px"><i class="ti ti-receipt" aria-hidden="true"></i> Mes échéances</div>
+    <div style="font-size:13px;font-weight:500;color:var(--teal-text);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap"><span style="display:flex;align-items:center;gap:6px"><i class="ti ti-receipt" aria-hidden="true"></i> Mes échéances</span>${soonTag}</div>
+    ${summary}
     ${items}
   </div>`;
 }
@@ -1395,7 +1522,7 @@ function renderPaymentAlerts(studentId){
     });
   }
   if(overdueItems.length){
-    const items=overdueItems.map(x=>`<li>${x.cp.reference||'Achat'} — échéance du ${formatDateFr(x.pmt.date)}${x.pmt.amount?` (${parseFloat(x.pmt.amount).toFixed(0)} €)`:''}</li>`).join('');
+    const items=overdueItems.map(x=>`<li>${purchaseLabel(x.cp)} — échéance du ${formatDateFr(x.pmt.date)}${x.pmt.amount?` (${parseFloat(x.pmt.amount).toFixed(0)} €)`:''}</li>`).join('');
     html+=`<div class="payment-alert"><i class="ti ti-alert-circle" style="font-size:20px;flex-shrink:0;margin-top:1px"></i><div><strong>Un paiement est en attente</strong><br><ul style="margin:.4rem 0 .4rem 1rem;font-size:11px">${items}</ul>Merci de contacter votre professeur pour régulariser votre situation.</div></div>`;
   }
   zone.innerHTML=html;
@@ -1433,15 +1560,24 @@ window.switchStudentPeriod=function(id){
 function renderStudentCalendar(){
   const studentId=getSelectedStudentId();
   const el=document.getElementById('studentCalendar');
-  const activePeriod=periods.find(p=>p.id===activePeriodId&&!p.archived);
-  if(!activePeriod){
+  const ps=periods.filter(p=>!p.archived);
+  const zone=document.getElementById('periodSelectorZone');if(zone)zone.innerHTML='';
+  if(!ps.length){
     el.innerHTML='<div class="empty">Aucune période active. Contactez votre professeur.</div>';
     return;
   }
-  renderPeriodSelector();
-  const pSlots=slots.filter(s=>s.periodId===activePeriod.id&&!s.archived);
-  el.innerHTML=buildCalendarHtml(activePeriod,pSlots,activePeriod.exclusions||[],'openStudentModal',studentId);
+  // Tous les trimestres à la suite, à partir du mois en cours
+  const ids=new Set(ps.map(p=>p.id));
+  const allSlots=slots.filter(sl=>!sl.archived&&ids.has(sl.periodId));
+  const merged={startDate:ps.map(p=>p.startDate).sort()[0],endDate:ps.map(p=>p.endDate).sort().slice(-1)[0]};
+  const excl=[].concat(...ps.map(p=>p.exclusions||[]));
+  const t=new Date();
+  const html=buildCalendarHtml(merged,allSlots,excl,'openStudentModal',studentId,{fromMonth:new Date(t.getFullYear(),t.getMonth(),1),hideEmptyMonths:true,maxMonths:3});
+  if(!html.trim()||html.indexOf('month-block')<0){el.innerHTML='<div class="empty">Aucun créneau à venir pour le moment.</div>';return;}
+  const extra=(html.match(/month-block extra-month/g)||[]).length;
+  el.innerHTML=`<div id="calMonths"${window._calOpen?' class="open"':''}>${html}</div>`+(extra?`<button class="btn" onclick="toggleMoreMonths()" style="width:100%;margin-top:8px">${window._calOpen?'Masquer les mois suivants':`+ Voir les ${extra} mois suivants`}</button>`:'');
 }
+window.toggleMoreMonths=function(){window._calOpen=!window._calOpen;renderStudentCalendar();};
 
 window.openStudentModal=async function(slotId){
   const slot=slots.find(x=>x.id===slotId);if(!slot)return;
@@ -1466,19 +1602,18 @@ window.openStudentModal=async function(slotId){
   html+=`<div class="modal-row"><span>Inscrits</span><span>${taken}/${slot.maxPlaces}</span></div>`;
   if(bookedNames.length)html+=`<div class="modal-row"><span>Participants</span><span style="font-size:12px;text-align:right;max-width:200px">${bookedNames.join(', ')}</span></div>`;
   if(slot.confirmed){html+=`<div class="confirmed-banner"><i class="ti ti-circle-check"></i> Ce cours est confirmé !</div>`;}
-  else{html+=`<div class="not-confirmed-banner"><i class="ti ti-info-circle"></i> Ce cours sera confirmé dès ${AUTO_CONFIRM_COUNT} inscrits.</div>`;}
   if(isPast){
     html+=`<div class="notice" style="margin-top:.75rem"><i class="ti ti-calendar-x"></i> Ce créneau est passé : inscription et annulation ne sont plus possibles.</div>`;
   }else if(st){
     if(myBooking&&!hasCancelReq){
       const hours=hoursUntil(slot.date,slot.time);
       if(hours<CANCEL_HOURS_LIMIT){html+=`<div class="notice-warning" style="margin-top:.75rem"><i class="ti ti-alert-triangle"></i> Ce cours est dans moins de 48h, l'annulation n'est plus possible. Contactez votre professeur.</div>`;}
-      else{html+=`<div style="margin-top:1rem"><button class="btn btn-danger" style="width:100%" onclick="requestCancel('${myBooking.id}','${slotId}')"><i class="ti ti-calendar-minus"></i> Demander l'annulation</button></div>`;}
+      else if(hours>=CANCEL_DIRECT_HOURS){html+=`<div style="margin-top:1rem"><button class="btn btn-danger" style="width:100%" onclick="cancelBookingDirect('${myBooking.id}','${slotId}')"><i class="ti ti-calendar-minus"></i> Annuler ma réservation</button></div>`;}
+      else{html+=`<div style="margin-top:1rem"><button class="btn btn-danger" style="width:100%" onclick="requestCancel('${myBooking.id}','${slotId}')"><i class="ti ti-calendar-minus"></i> Demander l'annulation</button><div style="font-size:11px;color:var(--text2);margin-top:6px;text-align:center">À moins de 7 jours du cours, votre professeur valide la demande.</div></div>`;}
     }else if(myBooking&&hasCancelReq){
       html+=`<div class="notice" style="margin-top:.75rem">Votre demande d'annulation est en attente de validation.</div>`;
     }else if(!myBooking&&!isFull&&!slot.closed){
-      if(st.credits>0){html+=`<div style="margin-top:1rem"><button class="btn btn-primary" style="width:100%" onclick="bookSlot('${slotId}')"><i class="ti ti-calendar-plus"></i> S'inscrire à ce cours</button></div>`;}
-      else{html+=`<div class="notice-danger" style="margin-top:.75rem"><i class="ti ti-alert-triangle"></i> Vous n'avez plus de crédits. Contactez votre professeur.</div>`;}
+      html+=`<div style="margin-top:1rem"><button class="btn btn-primary" style="width:100%" onclick="bookSlot('${slotId}')"><i class="ti ti-calendar-plus"></i> S'inscrire à ce cours</button></div>`;
     }
   }else{
     html+=`<div class="notice" style="margin-top:.75rem">Sélectionnez votre nom pour vous inscrire.</div>`;
@@ -1491,21 +1626,22 @@ window.closeGenericModal=function(){document.getElementById('genericModal').clas
 
 window.bookSlot=async function(slotId){
   const studentId=getSelectedStudentId();if(!studentId)return;
-  const st=students.find(x=>x.id===studentId);if(!st||st.credits<=0)return;
+  const st=students.find(x=>x.id===studentId);if(!st)return;
   const slot=slots.find(x=>x.id===slotId);if(!slot)return;
   if(slot.date<today()){showToast("Ce créneau est passé.");return;}
   const slotBk=bookings.filter(b=>b.slotId===slotId&&b.status==='confirmed');
   if(slotBk.length>=slot.maxPlaces){showToast("Créneau complet.");return;}
   if(slotBk.some(b=>b.studentId===studentId)){showToast("Déjà inscrit(e).");return;}
-  const newCredits=st.credits-1;
-  await fsUpdate("students",st.id,{credits:newCredits});st.credits=newCredits;
-  const r=await fsAdd("bookings",{slotId,studentId,status:'confirmed'});
+  // Un cours du forfait est utilisé en priorité ; sinon le cours est facturé au tarif unique
+  const viaCredit=(st.credits||0)>0;
+  if(viaCredit){const newCredits=st.credits-1;await fsUpdate("students",st.id,{credits:newCredits});st.credits=newCredits;}
+  const r=await fsAdd("bookings",{slotId,studentId,status:'confirmed',viaCredit,createdAt:new Date().toISOString()});
   bookings.push(r);
   const newCount=bookings.filter(b=>b.slotId===slotId&&b.status==='confirmed').length;
   const slotObj=slots.find(x=>x.id===slotId);
   if(newCount>=AUTO_CONFIRM_COUNT&&slotObj&&!slotObj.confirmed){
-    await fsUpdate("slots",slotId,{confirmed:true});
     slotObj.confirmed=true;
+    try{await fsUpdate("slots",slotId,{confirmed:true});}catch(e){console.warn("Statut du cours non enregistré",e);}
   }
   // Recharger les slots pour s'assurer que les statuts sont à jour
   try{
@@ -1519,11 +1655,86 @@ window.bookSlot=async function(slotId){
   showToast("Inscription confirmée !");
 };
 
+// ── SAUVEGARDE : télécharge toutes les données (JSON) + un tableau des élèves (CSV) ──
+function downloadFile(name,content,type){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([content],{type}));
+  a.download=name;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+}
+window.exportData=async function(){
+  if(!isAdmin)return false;
+  try{
+    showToast("Préparation de la sauvegarde...");
+    const cols=["periods","slots","students","bookings","cancelRequests","creditPurchases","notifications"];
+    const data={exportedAt:new Date().toISOString()};
+    for(const c of cols){data[c]=await fsGetAll(c);}
+    const day=new Date().toISOString().slice(0,10);
+    downloadFile(`sauvegarde-ateliers-${day}.json`,JSON.stringify(data,null,2),'application/json');
+    const esc=v=>`"${String(v??'').replace(/"/g,'""')}"`;
+    const lines=[["Élève","Crédits restants","Crédits achetés","Cours réservés (confirmés)","Échéances payées","Montant payé (€)","Échéances en attente","Montant en attente (€)","Dates des prochaines échéances"].map(esc).join(';')];
+    data.students.forEach(st=>{
+      const purchases=data.creditPurchases.filter(cp=>cp.studentId===st.id);
+      const bought=purchases.reduce((n,cp)=>n+(cp.creditsBought||0),0);
+      const booked=data.bookings.filter(b=>b.studentId===st.id&&b.status==='confirmed').length;
+      let pc=0,pa=0,paidC=0,paidA=0;const next=[];
+      purchases.forEach(cp=>(cp.payments||[]).forEach(pm=>{
+        if(!pm)return;
+        if(getPmtStatus(pm)==='paid'){paidC++;paidA+=parseFloat(pm.amount)||0;}
+        else{pc++;pa+=parseFloat(pm.amount)||0;next.push(pm);}
+      }));
+      next.sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999'));
+      const fmt=d=>d?d.split('-').reverse().join('/'):'sans date';
+      const nextTxt=next.map(pm=>`${fmt(pm.date)} (${parseFloat(pm.amount)||0} €)`).join(' | ');
+      lines.push([st.name,st.credits||0,bought,booked,paidC,paidA,pc,pa,nextTxt].map(esc).join(';'));
+    });
+    setTimeout(()=>downloadFile(`eleves-ateliers-${day}.csv`,'\ufeff'+lines.join('\n'),'text/csv;charset=utf-8'),600);
+    showToast("Sauvegarde téléchargée");return true;
+  }catch(e){console.error(e);showToast("Erreur pendant la sauvegarde");return false;}
+};
+
+window.cancelBookingDirect=async function(bookingId,slotId){
+  const studentId=getSelectedStudentId();if(!studentId)return;
+  const slot=slots.find(x=>x.id===slotId);
+  const booking=bookings.find(b=>b.id===bookingId&&b.studentId===studentId&&b.status==='confirmed');
+  if(!slot||!booking){showToast("Réservation introuvable.");closeModalStudent();return;}
+  if(hoursUntil(slot.date,slot.time)<CANCEL_DIRECT_HOURS){showToast("Annulation directe impossible à moins de 7 jours : envoyez une demande.");closeModalStudent();return;}
+  if(!confirm("Annuler votre réservation pour ce cours ?"))return;
+  const st=students.find(x=>x.id===studentId);
+  let step='annulation de la réservation';
+  try{
+    await fsUpdate("bookings",bookingId,{status:'cancelled',cancelledAt:new Date().toISOString(),cancelledBy:'élève'});booking.status='cancelled';
+    if(st&&booking.viaCredit!==false){step='restitution du cours du forfait';const nc=(st.credits||0)+1;await fsUpdate("students",st.id,{credits:nc});st.credits=nc;}
+  }catch(e){
+    console.error(e);
+    showToast(`Annulation impossible (${step} : ${e.code||e.message||'erreur'}). Contactez votre professeur.`);
+    return;
+  }
+  // Étapes secondaires : ne bloquent pas l'annulation
+  try{
+    const remaining=bookings.filter(b=>b.slotId===slotId&&b.status==='confirmed').length;
+    if(remaining<AUTO_CONFIRM_COUNT&&slot.confirmed){await fsUpdate("slots",slotId,{confirmed:false});slot.confirmed=false;}
+  }catch(e){console.warn("Confirmation du cours non mise à jour",e);}
+  try{
+    const alertDoc=await fsAdd("cancelRequests",{bookingId,slotId,studentId,status:'auto',createdAt:new Date().toISOString()});
+    cancelRequests.push(alertDoc);
+  }catch(e){console.warn("Alerte admin non enregistrée",e);}
+  try{if(st)renderHeroBanner(st);renderStudentCalendar();}catch(e){console.warn(e);}
+  closeModalStudent();
+  showToast("Réservation annulée");
+};
+window.dismissAutoCancels=async function(){
+  const autos=cancelRequests.filter(r=>r.status==='auto');
+  for(const r of autos){try{await fsUpdate("cancelRequests",r.id,{status:'seen'});}catch(e){console.warn(e);}}
+  cancelRequests=cancelRequests.filter(r=>r.status!=='auto');
+  renderCancelPendingList();
+};
 window.requestCancel=async function(bookingId,slotId){
   const studentId=getSelectedStudentId();if(!studentId)return;
   const st=students.find(x=>x.id===studentId);
   const slot=slots.find(x=>x.id===slotId);
   if(slot&&slot.date<today()){showToast("Ce créneau est passé.");return;}
+  if(slot&&hoursUntil(slot.date,slot.time)<CANCEL_HOURS_LIMIT){showToast("Ce cours est dans moins de 48h : contactez votre professeur.");closeModalStudent();return;}
   // Vérification : pas de demande déjà en attente pour cette réservation
   const alreadyPending=cancelRequests.find(r=>r.bookingId===bookingId&&r.studentId===studentId&&r.status==='pending');
   if(alreadyPending){
@@ -1534,21 +1745,6 @@ window.requestCancel=async function(bookingId,slotId){
   cancelRequests.push(r);
   closeModalStudent();renderStudentCalendar();
   showToast("Demande d'annulation envoyée !");
-  // Envoi email notification
-  if(st&&slot){
-    try{
-      await emailjs.send("service_sq468cl","template_rr1yq9o",{
-        to_email: ADMIN_EMAIL,
-        student_name: st.name,
-        slot_date: formatFull(parseDate(slot.date)),
-        slot_time: slot.time,
-        message: `${st.name} demande l'annulation de sa réservation du ${formatFull(parseDate(slot.date))} à ${slot.time}.`
-      });
-      console.log("Email envoyé");
-    }catch(e){
-      console.warn("Erreur envoi email:",e);
-    }
-  }
 };
 
 function renderAdmin(){
