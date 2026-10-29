@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- VERSION-ETAPE-7B : admin réservations &amp; paiements, À relancer, bandeau échéance (28/10/2026) -->
+<!-- VERSION-ETAPE-7D : admin réservations &amp; paiements, À relancer, bandeau échéance (28/10/2026) -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -56,6 +56,7 @@ input:focus,select:focus{border-color:var(--text)}
 .month-title{font-size:15px;font-weight:500;margin-bottom:.75rem}
 .cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
 .cal-header{text-align:center;font-size:10px;font-weight:500;color:var(--text2);padding:4px 0;text-transform:uppercase;letter-spacing:.04em}
+#calMonths:not(.open) .month-block.extra-month{display:none}
 .cal-day{position:relative;min-height:58px;border-radius:var(--radius);border:.5px solid var(--border);padding:4px;background:var(--bg)}
 .cal-day.empty{border-color:transparent;background:transparent}
 .cal-day.excluded{background:var(--bg2)}
@@ -118,7 +119,7 @@ input:focus,select:focus{border-color:var(--text)}
 .hero-name{font-size:20px;font-weight:500;color:var(--teal-light)}
 .hero-credits-val{font-size:28px;font-weight:500;color:#9FE1CB}
 .hero-forfait{font-size:12px;color:#9FE1CB;margin-top:12px;padding-top:10px;border-top:.5px solid rgba(159,225,203,.3);display:flex;gap:6px;align-items:flex-start;line-height:1.4}
-.hero-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:.5px solid rgba(159,225,203,.22);font-size:13px;color:var(--teal-light)}
+.hero-row{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:2px 8px;padding:6px 0;border-top:.5px solid rgba(159,225,203,.22);font-size:13px;color:var(--teal-light)}
 .hero-row:first-child{border-top:none}
 .hero-st{font-size:11px;white-space:nowrap;display:flex;align-items:center;gap:4px;color:#9FE1CB}
 .hero-st.ok{color:#fff;font-weight:500}
@@ -247,7 +248,7 @@ input:focus,select:focus{border-color:var(--text)}
         <div style="background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:12px;text-align:center">
           <div style="width:26px;height:26px;border-radius:50%;background:var(--teal-dark);color:#E1F5EE;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;margin:0 auto 8px">2</div>
           <div style="font-size:11px;font-weight:500;color:var(--text);margin-bottom:3px">À l'atelier !</div>
-          <div style="font-size:10px;color:var(--text2);line-height:1.4">Le cours est confirmé dès 3 inscrits</div>
+          <div style="font-size:10px;color:var(--text2);line-height:1.4">Rendez-vous à l'atelier le jour du cours</div>
         </div>
       </div>
 
@@ -267,6 +268,13 @@ input:focus,select:focus{border-color:var(--text)}
           <i class="ti ti-clock" style="color:var(--teal-mid);font-size:16px;flex-shrink:0;margin-top:2px" aria-hidden="true"></i>
           <div>
             <div style="font-size:12px;font-weight:500;color:var(--text)">Vendredi soir à 18h · Samedi matin à 10h</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px">
+          <i class="ti ti-users" style="color:var(--teal-mid);font-size:16px;flex-shrink:0;margin-top:2px" aria-hidden="true"></i>
+          <div>
+            <div style="font-size:12px;font-weight:500;color:var(--text)">Confirmation des cours</div>
+            <div style="font-size:11px;color:var(--text2);line-height:1.4">Un cours est confirmé dès que 3 personnes sont inscrites. Tant qu'il y en a moins, il apparaît « en attente de confirmation ».</div>
           </div>
         </div>
         <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px">
@@ -677,7 +685,7 @@ window.addExclusion=async function(periodId){
       if(!confirmed)return;
       // Auto-refund and notify
       for(const b of slotBk){
-        await fsUpdate("bookings",b.id,{status:'cancelled'});
+        await fsUpdate("bookings",b.id,{status:'cancelled',cancelledAt:new Date().toISOString(),cancelledBy:'admin (créneau supprimé)'});
         b.status='cancelled';
         const st=students.find(x=>x.id===b.studentId);
         if(st&&b.viaCredit!==false){await fsUpdate("students",st.id,{credits:st.credits+1});st.credits++;}
@@ -834,17 +842,20 @@ window.confirmNewYear=async function(){
 };
 
 // ── CALENDAR BUILDER ─────────────────────────────────────────
-function buildCalendarHtml(period,pSlots,excl,clickFn,studentId){
+function buildCalendarHtml(period,pSlots,excl,clickFn,studentId,opts={}){
   if(!pSlots.length)return'<div class="empty">Aucun créneau. Cliquez "Générer créneaux".</div>';
   const slotByDate={};pSlots.forEach(s=>slotByDate[s.date]=s);
   const exclSet=new Set(excl);
   const start=parseDate(period.startDate),end=parseDate(period.endDate);
   const firstMonth=new Date(start.getFullYear(),start.getMonth(),1);
   const lastMonth=new Date(end.getFullYear(),end.getMonth(),1);
-  let html='',cur=new Date(firstMonth);
+  let html='',cur=new Date(firstMonth),monthIdx=0;
   while(cur<=lastMonth){
     const y=cur.getFullYear(),m=cur.getMonth();
-    html+=`<div class="month-block"><div class="month-title">${MONTHS[m]} ${y}</div><div class="cal-grid">`;
+    if(opts.fromMonth&&cur<opts.fromMonth){cur.setMonth(cur.getMonth()+1);continue;}
+    if(opts.hideEmptyMonths){const pre=`${y}-${String(m+1).padStart(2,'0')}`;if(!pSlots.some(sl=>sl.date.startsWith(pre))){cur.setMonth(cur.getMonth()+1);continue;}}
+    monthIdx++;
+    html+=`<div class="month-block${opts.maxMonths&&monthIdx>opts.maxMonths?' extra-month':''}"><div class="month-title">${MONTHS[m]} ${y}</div><div class="cal-grid">`;
     DAYS_FR.forEach(d=>html+=`<div class="cal-header">${d}</div>`);
     const startDow=(new Date(y,m,1).getDay()+6)%7;
     for(let i=0;i<startDow;i++)html+=`<div class="cal-day empty"></div>`;
@@ -982,7 +993,7 @@ window.adminUnconfirmSlot=async function(slotId){
 window.adminCancelBooking=async function(bookingId,slotId){
   if(!confirm("Confirmer l'annulation administrative ?"))return;
   const booking=bookings.find(b=>b.id===bookingId);if(!booking)return;
-  await fsUpdate("bookings",bookingId,{status:'cancelled'});booking.status='cancelled';
+  await fsUpdate("bookings",bookingId,{status:'cancelled',cancelledAt:new Date().toISOString(),cancelledBy:'admin'});booking.status='cancelled';
   const st=students.find(x=>x.id===booking.studentId);
   if(st&&booking.viaCredit!==false){await fsUpdate("students",st.id,{credits:st.credits+1});st.credits++;}
   const remaining=bookings.filter(b=>b.slotId===slotId&&b.status==='confirmed').length;
@@ -1051,7 +1062,7 @@ window.approveCancel=async function(requestId){
     return;
   }
   await fsUpdate("cancelRequests",requestId,{status:'approved'});
-  await fsUpdate("bookings",req.bookingId,{status:'cancelled'});
+  await fsUpdate("bookings",req.bookingId,{status:'cancelled',cancelledAt:new Date().toISOString(),cancelledBy:'admin (demande validée)'});
   req.status='approved';
   booking.status='cancelled';
   const st=students.find(x=>x.id===req.studentId);
@@ -1424,7 +1435,7 @@ function renderHeroBanner(st){
       </div>
       ${futureBooked.length?`<div class="next-session hero-list" id="heroList">
         <div class="next-session-lbl"><i class="ti ti-calendar" aria-hidden="true"></i> Mes prochaines séances</div>
-        <div class="hero-rows">${futureBooked.map((sl,i)=>`<div class="hero-row${i>=5?' extra':''}"><span>${shortDate(sl.date)} · ${sl.time}</span><span class="hero-st${sl.confirmed?' ok':''}">${sl.confirmed?'<i class="ti ti-circle-check" aria-hidden="true"></i> Confirmé':'<i class="ti ti-clock" aria-hidden="true"></i> En attente'}</span></div>`).join('')}</div>
+        <div class="hero-rows">${futureBooked.map((sl,i)=>`<div class="hero-row${i>=5?' extra':''}"><span>${shortDate(sl.date)} · ${sl.time}</span><span class="hero-st${sl.confirmed?' ok':''}">${sl.confirmed?'<i class="ti ti-circle-check" aria-hidden="true"></i> Confirmé':'<i class="ti ti-clock" aria-hidden="true"></i> En attente de confirmation'}</span></div>`).join('')}</div>
         ${futureBooked.length>5?`<button class="hero-more-btn" data-label="Voir les ${futureBooked.length-5} autres séances" onclick="toggleHeroList(this)">Voir les ${futureBooked.length-5} autres séances</button>`:''}
       </div>`:`<div class="next-session" style="color:#9FE1CB;font-size:12px"><i class="ti ti-calendar-off" aria-hidden="true"></i> Aucune séance réservée prochainement</div>`}
       ${s.toReserve>0?`<div class="hero-forfait"><i class="ti ti-info-circle" aria-hidden="true" style="margin-top:1px"></i><span>Il vous reste ${s.toReserve} cours à réserver dans le planning.</span></div>`:''}
@@ -1449,7 +1460,7 @@ function renderEcheancier(studentId){
   });
   if(!rows.length&&s.due<=0){zone.innerHTML='';return;}
   rows.sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999'));
-  if(s.toPlan>0)rows.push({date:'',amount:s.toPlan,status:'tbd',ref:'Échéances à définir'});
+  if(s.toPlan>0)rows.push({date:'',amount:s.toPlan,status:'tbd',ref:'Séance(s) à régler'});
   const statusInfo={paid:{label:'Payé',color:'var(--teal-mid)',bg:'var(--teal-light)'},overdue:{label:'En retard',color:'var(--red-text)',bg:'var(--red-light)'},pending:{label:'À venir',color:'#854F0B',bg:'#FAEEDA'},tbd:{label:'À définir',color:'var(--gray-text)',bg:'var(--gray-light)'}};
   const items=rows.map(r=>{
     const si=statusInfo[r.status];
@@ -1548,15 +1559,24 @@ window.switchStudentPeriod=function(id){
 function renderStudentCalendar(){
   const studentId=getSelectedStudentId();
   const el=document.getElementById('studentCalendar');
-  const activePeriod=periods.find(p=>p.id===activePeriodId&&!p.archived);
-  if(!activePeriod){
+  const ps=periods.filter(p=>!p.archived);
+  const zone=document.getElementById('periodSelectorZone');if(zone)zone.innerHTML='';
+  if(!ps.length){
     el.innerHTML='<div class="empty">Aucune période active. Contactez votre professeur.</div>';
     return;
   }
-  renderPeriodSelector();
-  const pSlots=slots.filter(s=>s.periodId===activePeriod.id&&!s.archived);
-  el.innerHTML=buildCalendarHtml(activePeriod,pSlots,activePeriod.exclusions||[],'openStudentModal',studentId);
+  // Tous les trimestres à la suite, à partir du mois en cours
+  const ids=new Set(ps.map(p=>p.id));
+  const allSlots=slots.filter(sl=>!sl.archived&&ids.has(sl.periodId));
+  const merged={startDate:ps.map(p=>p.startDate).sort()[0],endDate:ps.map(p=>p.endDate).sort().slice(-1)[0]};
+  const excl=[].concat(...ps.map(p=>p.exclusions||[]));
+  const t=new Date();
+  const html=buildCalendarHtml(merged,allSlots,excl,'openStudentModal',studentId,{fromMonth:new Date(t.getFullYear(),t.getMonth(),1),hideEmptyMonths:true,maxMonths:3});
+  if(!html.trim()||html.indexOf('month-block')<0){el.innerHTML='<div class="empty">Aucun créneau à venir pour le moment.</div>';return;}
+  const extra=(html.match(/month-block extra-month/g)||[]).length;
+  el.innerHTML=`<div id="calMonths"${window._calOpen?' class="open"':''}>${html}</div>`+(extra?`<button class="btn" onclick="toggleMoreMonths()" style="width:100%;margin-top:8px">${window._calOpen?'Masquer les mois suivants':`+ Voir les ${extra} mois suivants`}</button>`:'');
 }
+window.toggleMoreMonths=function(){window._calOpen=!window._calOpen;renderStudentCalendar();};
 
 window.openStudentModal=async function(slotId){
   const slot=slots.find(x=>x.id===slotId);if(!slot)return;
@@ -1581,7 +1601,6 @@ window.openStudentModal=async function(slotId){
   html+=`<div class="modal-row"><span>Inscrits</span><span>${taken}/${slot.maxPlaces}</span></div>`;
   if(bookedNames.length)html+=`<div class="modal-row"><span>Participants</span><span style="font-size:12px;text-align:right;max-width:200px">${bookedNames.join(', ')}</span></div>`;
   if(slot.confirmed){html+=`<div class="confirmed-banner"><i class="ti ti-circle-check"></i> Ce cours est confirmé !</div>`;}
-  else{html+=`<div class="not-confirmed-banner"><i class="ti ti-info-circle"></i> Ce cours sera confirmé dès ${AUTO_CONFIRM_COUNT} inscrits.</div>`;}
   if(isPast){
     html+=`<div class="notice" style="margin-top:.75rem"><i class="ti ti-calendar-x"></i> Ce créneau est passé : inscription et annulation ne sont plus possibles.</div>`;
   }else if(st){
@@ -1615,7 +1634,7 @@ window.bookSlot=async function(slotId){
   // Un cours du forfait est utilisé en priorité ; sinon le cours est facturé au tarif unique
   const viaCredit=(st.credits||0)>0;
   if(viaCredit){const newCredits=st.credits-1;await fsUpdate("students",st.id,{credits:newCredits});st.credits=newCredits;}
-  const r=await fsAdd("bookings",{slotId,studentId,status:'confirmed',viaCredit});
+  const r=await fsAdd("bookings",{slotId,studentId,status:'confirmed',viaCredit,createdAt:new Date().toISOString()});
   bookings.push(r);
   const newCount=bookings.filter(b=>b.slotId===slotId&&b.status==='confirmed').length;
   const slotObj=slots.find(x=>x.id===slotId);
@@ -1680,18 +1699,28 @@ window.cancelBookingDirect=async function(bookingId,slotId){
   if(!slot||!booking){showToast("Réservation introuvable.");closeModalStudent();return;}
   if(hoursUntil(slot.date,slot.time)<CANCEL_DIRECT_HOURS){showToast("Annulation directe impossible à moins de 7 jours : envoyez une demande.");closeModalStudent();return;}
   if(!confirm("Annuler votre réservation pour ce cours ?"))return;
+  const st=students.find(x=>x.id===studentId);
+  let step='annulation de la réservation';
   try{
-    await fsUpdate("bookings",bookingId,{status:'cancelled'});booking.status='cancelled';
-    const st=students.find(x=>x.id===studentId);
-    if(st&&booking.viaCredit!==false){const nc=(st.credits||0)+1;await fsUpdate("students",st.id,{credits:nc});st.credits=nc;}
+    await fsUpdate("bookings",bookingId,{status:'cancelled',cancelledAt:new Date().toISOString(),cancelledBy:'élève'});booking.status='cancelled';
+    if(st&&booking.viaCredit!==false){step='restitution du cours du forfait';const nc=(st.credits||0)+1;await fsUpdate("students",st.id,{credits:nc});st.credits=nc;}
+  }catch(e){
+    console.error(e);
+    showToast(`Annulation impossible (${step} : ${e.code||e.message||'erreur'}). Contactez votre professeur.`);
+    return;
+  }
+  // Étapes secondaires : ne bloquent pas l'annulation
+  try{
     const remaining=bookings.filter(b=>b.slotId===slotId&&b.status==='confirmed').length;
     if(remaining<AUTO_CONFIRM_COUNT&&slot.confirmed){await fsUpdate("slots",slotId,{confirmed:false});slot.confirmed=false;}
+  }catch(e){console.warn("Confirmation du cours non mise à jour",e);}
+  try{
     const alertDoc=await fsAdd("cancelRequests",{bookingId,slotId,studentId,status:'auto',createdAt:new Date().toISOString()});
     cancelRequests.push(alertDoc);
-    if(st)renderHeroBanner(st);
-    renderStudentCalendar();closeModalStudent();
-    showToast("Réservation annulée");
-  }catch(e){console.error(e);showToast("Une erreur est survenue. Réessayez ou contactez votre professeur.");}
+  }catch(e){console.warn("Alerte admin non enregistrée",e);}
+  try{if(st)renderHeroBanner(st);renderStudentCalendar();}catch(e){console.warn(e);}
+  closeModalStudent();
+  showToast("Réservation annulée");
 };
 window.dismissAutoCancels=async function(){
   const autos=cancelRequests.filter(r=>r.status==='auto');
