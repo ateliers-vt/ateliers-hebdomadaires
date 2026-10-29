@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- VERSION-ETAPE-7E : admin réservations &amp; paiements, À relancer, bandeau échéance (28/10/2026) -->
+<!-- VERSION-ETAPE-7F : admin réservations &amp; paiements, À relancer, bandeau échéance (28/10/2026) -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -1590,8 +1590,8 @@ window.openStudentModal=async function(slotId){
   const myBooking=st&&slotBk.find(b=>b.studentId===studentId);
   const hasCancelReq=st&&cancelRequests.some(r=>r.slotId===slotId&&r.studentId===studentId&&r.status==='pending');
   let status;
-  if(slot.confirmed)status='<span class="badge badge-confirmed"><i class="ti ti-check"></i> Cours confirmé</span>';
-  else if(slot.closed)status='<span class="badge badge-closed">Fermé</span>';
+  // Le statut décrit la situation de la personne (inscrite ou non, places), pas la confirmation du cours
+  if(slot.closed)status='<span class="badge badge-closed">Fermé</span>';
   else if(myBooking&&hasCancelReq)status='<span class="badge badge-pending">Annulation en attente</span>';
   else if(myBooking)status='<span class="badge badge-booked">Vous êtes inscrit(e)</span>';
   else if(isFull)status='<span class="badge badge-full">Complet</span>';
@@ -1601,7 +1601,14 @@ window.openStudentModal=async function(slotId){
   let html=`<div class="modal-row"><span>Statut</span>${status}</div>`;
   html+=`<div class="modal-row"><span>Inscrits</span><span>${taken}/${slot.maxPlaces}</span></div>`;
   if(bookedNames.length)html+=`<div class="modal-row"><span>Participants</span><span style="font-size:12px;text-align:right;max-width:200px">${bookedNames.join(', ')}</span></div>`;
-  if(slot.confirmed){html+=`<div class="confirmed-banner"><i class="ti ti-circle-check"></i> Ce cours est confirmé !</div>`;}
+  if(myBooking){
+    html+=slot.confirmed
+      ?`<div class="confirmed-banner"><i class="ti ti-circle-check"></i> Ce cours est confirmé !</div>`
+      :`<div class="not-confirmed-banner"><i class="ti ti-clock"></i> En attente de confirmation</div>`;
+  }else if(!isFull&&!slot.closed&&!isPast){
+    const left=slot.maxPlaces-taken;
+    html+=`<div class="notice" style="margin-top:.75rem;background:var(--blue-light);color:var(--blue-text)"><i class="ti ti-users"></i> ${left} place${left>1?'s':''} disponible${left>1?'s':''}</div>`;
+  }
   if(isPast){
     html+=`<div class="notice" style="margin-top:.75rem"><i class="ti ti-calendar-x"></i> Ce créneau est passé : inscription et annulation ne sont plus possibles.</div>`;
   }else if(st){
