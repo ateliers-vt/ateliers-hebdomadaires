@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- VERSION-ETAPE-6D : admin réservations &amp; paiements, À relancer, bandeau échéance (28/10/2026) -->
+<!-- VERSION-ETAPE-7B : admin réservations &amp; paiements, À relancer, bandeau échéance (28/10/2026) -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -56,7 +56,7 @@ input:focus,select:focus{border-color:var(--text)}
 .month-title{font-size:15px;font-weight:500;margin-bottom:.75rem}
 .cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
 .cal-header{text-align:center;font-size:10px;font-weight:500;color:var(--text2);padding:4px 0;text-transform:uppercase;letter-spacing:.04em}
-.cal-day{min-height:58px;border-radius:var(--radius);border:.5px solid var(--border);padding:4px;background:var(--bg)}
+.cal-day{position:relative;min-height:58px;border-radius:var(--radius);border:.5px solid var(--border);padding:4px;background:var(--bg)}
 .cal-day.empty{border-color:transparent;background:transparent}
 .cal-day.excluded{background:var(--bg2)}
 .cal-day.has-slot{cursor:pointer}
@@ -64,6 +64,9 @@ input:focus,select:focus{border-color:var(--text)}
 .cal-day.past-day{opacity:.4;filter:grayscale(70%)}
 .cal-day.past-day.has-slot:hover{border-color:var(--border);background:var(--bg)}
 .day-num{font-size:10px;color:var(--text2);margin-bottom:2px}
+.my-mark{position:absolute;top:3px;right:3px;width:14px;height:14px;border-radius:50%;font-size:9px;font-weight:700;line-height:14px;text-align:center}
+.my-mark.wait{background:#9FE1CB;color:var(--teal-dark)}
+.my-mark.ok{background:var(--teal-dark);color:#fff}
 .cal-day.my-day{border:2px solid var(--teal-dark);padding:3px}
 .slot-chip{border-radius:5px;padding:2px 4px;font-size:9px;font-weight:500;line-height:1.3;margin-top:2px;display:block}
 .chip-available{background:var(--blue-light);color:var(--blue-text)}
@@ -115,6 +118,13 @@ input:focus,select:focus{border-color:var(--text)}
 .hero-name{font-size:20px;font-weight:500;color:var(--teal-light)}
 .hero-credits-val{font-size:28px;font-weight:500;color:#9FE1CB}
 .hero-forfait{font-size:12px;color:#9FE1CB;margin-top:12px;padding-top:10px;border-top:.5px solid rgba(159,225,203,.3);display:flex;gap:6px;align-items:flex-start;line-height:1.4}
+.hero-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:.5px solid rgba(159,225,203,.22);font-size:13px;color:var(--teal-light)}
+.hero-row:first-child{border-top:none}
+.hero-st{font-size:11px;white-space:nowrap;display:flex;align-items:center;gap:4px;color:#9FE1CB}
+.hero-st.ok{color:#fff;font-weight:500}
+.hero-list:not(.open) .hero-row.extra{display:none}
+.hero-list.open .hero-rows{max-height:300px;overflow:auto}
+.hero-more-btn{background:none;border:none;color:#9FE1CB;font-size:12px;cursor:pointer;padding:6px 0 0;text-decoration:underline}
 .hero-credits-lbl{font-size:10px;color:#5DCAA5;text-align:right}
 .next-session{background:rgba(255,255,255,0.09);border-radius:var(--radius);padding:10px 14px}
 .next-session-lbl{font-size:10px;color:#5DCAA5;text-transform:uppercase;letter-spacing:.05em;font-weight:500;margin-bottom:4px}
@@ -408,7 +418,8 @@ import { getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged } from "h
 
 const ADMIN_EMAIL="virginie.ternois@gmail.com";
 const PRICE_PER_COURSE=35;        // tarif unique d'un cours
-const REMINDER_DAYS=3;            // bandeau élève : échéance dans 3 jours ou moins
+const PAID_HIDE_DAYS=90;          // élève : échéances payées depuis plus de 90 jours masquées de la liste
+const REMINDER_DAYS=7;            // élève : mention « prochaine échéance » à côté du titre, dans les 7 jours
 const RELANCE_DAYS=7;             // admin « À relancer » : échéances dans 7 jours ou moins
 const CANCEL_HOURS_LIMIT=48;      // moins de 48 h : annulation impossible pour l'élève
 const CANCEL_DIRECT_HOURS=7*24;   // 7 jours ou plus : l'élève annule seul ; entre les deux : demande à valider
@@ -753,29 +764,73 @@ window.saveNewPeriod=async function(){
   closeGenericModal();renderAdmin();showToast("Période créée !");
 };
 
-// ── NEW YEAR MODAL ───────────────────────────────────────────
+// ── NOUVELLE ANNÉE SCOLAIRE : sauvegarde + remise à zéro ─────
+async function inBatches(items,fn,size=10){for(let i=0;i<items.length;i+=size){await Promise.all(items.slice(i,i+size).map(fn));}}
+window.nyToggleAll=function(v){document.querySelectorAll('.ny-keep').forEach(c=>{c.checked=v;});updateNewYearSummary();};
+window.updateNewYearSummary=function(){
+  const el=document.getElementById('nySummary');if(!el)return;
+  const keep=new Set([...document.querySelectorAll('.ny-keep')].filter(c=>c.checked).map(c=>c.value));
+  const unpaid=students.reduce((n,st)=>n+studentStats(st.id).resteDu,0);
+  el.innerHTML=`<strong>Ce qui sera fait :</strong><br>
+    • ${keep.size} élève(s) conservé(s), compteurs et crédits remis à zéro<br>
+    • ${students.length-keep.size} élève(s) supprimé(s)<br>
+    • ${bookings.length} réservation(s), ${creditPurchases.length} règlement(s)/achat(s) et ${cancelRequests.length} demande(s) d'annulation supprimés<br>
+    • ${periods.length} période(s) et ${slots.length} créneau(x) archivés
+    ${unpaid>0?`<br><span style="color:var(--red-text)">• Attention : ${unpaid.toFixed(0)} € restent à régler au total, ils seront effacés.</span>`:''}`;
+};
 window.showNewYearModal=function(){
-  document.getElementById('genericModalTitle').textContent='Démarrer une nouvelle année';
+  const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  const rows=students.map(st=>{
+    const s=studentStats(st.id);
+    const tags=[s.resteDu>0?`<span style="color:var(--red-text)">${s.resteDu.toFixed(0)} € à régler</span>`:'',s.toReserve>0?`${s.toReserve} à réserver`:'',s.upcoming>0?`${s.upcoming} à venir`:''].filter(Boolean).join(' · ');
+    return `<label style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:.5px solid var(--border);font-size:13px;cursor:pointer"><input type="checkbox" class="ny-keep" value="${st.id}" checked onchange="updateNewYearSummary()" style="width:auto"><span style="flex:1">${esc(st.name)}</span><span style="font-size:11px;color:var(--text2)">${tags||'—'}</span></label>`;
+  }).join('');
+  document.getElementById('genericModalTitle').textContent='Démarrer une nouvelle année scolaire';
   document.getElementById('genericModalContent').innerHTML=`
     <div style="background:var(--red-light);border:.5px solid var(--red-border);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--red-text)">
-      <i class="ti ti-alert-triangle"></i> Cette action va <strong>archiver</strong> toutes les périodes et créneaux actuels. Les élèves, crédits et historiques sont conservés. Les créneaux et réservations seront archivés et ne seront plus visibles.
+      <i class="ti ti-alert-triangle"></i> Cette action <strong>remet tous les comptes à zéro</strong> et supprime définitivement les réservations, règlements et échéances de la saison. Une sauvegarde est téléchargée automatiquement juste avant : conservez-la.
     </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><div style="font-size:12px;font-weight:500">Élèves à conserver</div><div style="font-size:11px"><a href="#" onclick="nyToggleAll(true);return false">Tout cocher</a> · <a href="#" onclick="nyToggleAll(false);return false">Tout décocher</a></div></div>
+    <div style="max-height:220px;overflow:auto;border:.5px solid var(--border);border-radius:var(--radius);padding:0 10px;margin-bottom:10px">${rows||'<div class="empty">Aucun élève.</div>'}</div>
+    <div id="nySummary" style="font-size:12px;color:var(--text2);background:var(--bg2);border-radius:var(--radius);padding:10px 12px;margin-bottom:12px"></div>
     <div style="font-size:12px;color:var(--text2);margin-bottom:8px">Pour confirmer, tapez <strong>NOUVELLE ANNÉE</strong> :</div>
     <input type="text" id="newYearConfirm" placeholder="Tapez ici pour confirmer…" style="width:100%;margin-bottom:12px">
     <div style="display:flex;gap:8px">
-      <button class="btn btn-danger" onclick="confirmNewYear()" style="flex:1">Archiver et recommencer</button>
+      <button class="btn btn-danger" id="nyGo" onclick="confirmNewYear()" style="flex:1">Sauvegarder et remettre à zéro</button>
       <button class="btn" onclick="closeGenericModal()">Annuler</button>
     </div>`;
   document.getElementById('genericModal').classList.add('open');
+  updateNewYearSummary();
 };
 
 window.confirmNewYear=async function(){
   const val=document.getElementById('newYearConfirm').value.trim();
   if(val!=='NOUVELLE ANNÉE'){showToast("Saisie incorrecte");return;}
-  for(const p of periods)await fsUpdate("periods",p.id,{archived:true});
-  for(const s of slots)await fsUpdate("slots",s.id,{archived:true});
-  periods=[];slots=[];activePeriodId=null;
-  closeGenericModal();renderAdmin();renderStudentCalendar();showToast("Nouvelle année démarrée !");
+  const keep=new Set([...document.querySelectorAll('.ny-keep')].filter(c=>c.checked).map(c=>c.value));
+  const go=document.getElementById('nyGo');if(go)go.disabled=true;
+  const box=document.getElementById('genericModalContent');
+  try{
+    showToast("Sauvegarde en cours…");
+    const saved=await exportData();
+    if(!saved){showToast("Sauvegarde impossible : rien n'a été modifié.");if(go)go.disabled=false;return;}
+    box.innerHTML='<div id="nyProgress" style="font-size:13px;padding:16px 0">Remise à zéro en cours… ne fermez pas cette page.</div>';
+    const prog=t=>{const e=document.getElementById('nyProgress');if(e)e.textContent=t;};
+    prog('Suppression des réservations…');          await inBatches(bookings,b=>fsDelete("bookings",b.id));
+    prog("Suppression des demandes d'annulation…"); await inBatches(cancelRequests,r=>fsDelete("cancelRequests",r.id));
+    prog('Suppression des règlements et achats…');  await inBatches(creditPurchases,c=>fsDelete("creditPurchases",c.id));
+    prog('Suppression des notifications…');         await inBatches(notifications||[],n=>fsDelete("notifications",n.id));
+    prog('Mise à jour des élèves…');
+    await inBatches(students,st=>keep.has(st.id)?fsUpdate("students",st.id,{credits:0}):fsDelete("students",st.id));
+    prog('Archivage des périodes et des créneaux…');
+    await inBatches(periods,p=>fsUpdate("periods",p.id,{archived:true}));
+    await inBatches(slots,sl=>fsUpdate("slots",sl.id,{archived:true}));
+    students=students.filter(st=>keep.has(st.id));students.forEach(st=>{st.credits=0;});
+    bookings=[];cancelRequests=[];creditPurchases=[];notifications=[];periods=[];slots=[];activePeriodId=null;
+    closeGenericModal();renderAdmin();renderStudentCalendar();showToast("Nouvelle année démarrée !");
+  }catch(e){
+    console.error(e);
+    box.innerHTML='<div style="font-size:13px;color:var(--red-text);padding:16px 0">Une erreur est survenue en cours de route. La sauvegarde a bien été téléchargée. Rechargez la page et vérifiez l\'état des données avant de recommencer.</div><button class="btn" onclick="closeGenericModal()">Fermer</button>';
+  }
 };
 
 // ── CALENDAR BUILDER ─────────────────────────────────────────
@@ -829,6 +884,7 @@ function buildCalendarHtml(period,pSlots,excl,clickFn,studentId){
         }
         const lbl=slot.label.split(' ')[1];
         inner+=`<span class="slot-chip ${chipCls}">${lbl}<br>${taken}/${slot.maxPlaces}</span>`;
+        if(isBooked)inner+=`<span class="my-mark ${slot.confirmed?'ok':'wait'}" role="img" aria-label="${slot.confirmed?'Réservé, cours confirmé':'Réservé, en attente de confirmation'}">✓</span>`;
       }
       const onclick=slot?`onclick="${clickFn}('${slot.id}')"`:'';
       html+=`<div class="${cls}" ${onclick}>${inner}</div>`;
@@ -1346,6 +1402,8 @@ window.setPmtNote=async function(cpId,idx,val){
 };
 
 // ── STUDENT VIEW ─────────────────────────────────────────────
+function shortDate(d){const x=parseDate(d);return ['dim.','lun.','mar.','mer.','jeu.','ven.','sam.'][x.getDay()]+' '+x.getDate()+' '+MONTHS[x.getMonth()].slice(0,3).toLowerCase()+'.';}
+window.toggleHeroList=function(btn){const l=document.getElementById('heroList');if(!l)return;const open=l.classList.toggle('open');btn.textContent=open?'Réduire la liste':btn.dataset.label;};
 function renderHeroBanner(st){
   const s=studentStats(st.id);
   const allSlots=slots.filter(sl=>!sl.archived&&!sl.closed);
@@ -1364,10 +1422,10 @@ function renderHeroBanner(st){
           <div class="hero-credits-lbl">cours à venir</div>
         </div>
       </div>
-      ${next?`<div class="next-session">
-        <div class="next-session-lbl"><i class="ti ti-calendar" aria-hidden="true"></i> Prochaine séance réservée</div>
-        <div class="next-session-date">${formatFull(parseDate(next.date))} — ${next.time}</div>
-        <div class="next-session-status">${next.confirmed?'<i class="ti ti-circle-check"></i> Cours confirmé':'<i class="ti ti-clock"></i> En attente de confirmation'}</div>
+      ${futureBooked.length?`<div class="next-session hero-list" id="heroList">
+        <div class="next-session-lbl"><i class="ti ti-calendar" aria-hidden="true"></i> Mes prochaines séances</div>
+        <div class="hero-rows">${futureBooked.map((sl,i)=>`<div class="hero-row${i>=5?' extra':''}"><span>${shortDate(sl.date)} · ${sl.time}</span><span class="hero-st${sl.confirmed?' ok':''}">${sl.confirmed?'<i class="ti ti-circle-check" aria-hidden="true"></i> Confirmé':'<i class="ti ti-clock" aria-hidden="true"></i> En attente'}</span></div>`).join('')}</div>
+        ${futureBooked.length>5?`<button class="hero-more-btn" data-label="Voir les ${futureBooked.length-5} autres séances" onclick="toggleHeroList(this)">Voir les ${futureBooked.length-5} autres séances</button>`:''}
       </div>`:`<div class="next-session" style="color:#9FE1CB;font-size:12px"><i class="ti ti-calendar-off" aria-hidden="true"></i> Aucune séance réservée prochainement</div>`}
       ${s.toReserve>0?`<div class="hero-forfait"><i class="ti ti-info-circle" aria-hidden="true" style="margin-top:1px"></i><span>Il vous reste ${s.toReserve} cours à réserver dans le planning.</span></div>`:''}
     </div>`;
@@ -1384,6 +1442,7 @@ function renderEcheancier(studentId){
   purchases.forEach(cp=>{
     (cp.payments||[]).forEach(pmt=>{
       if(!pmt)return;
+      if(pmt.status==='paid'&&pmt.date&&(now-new Date(pmt.date+'T23:59:59'))/86400000>PAID_HIDE_DAYS)return;
       rows.push({date:pmt.date,amount:pmt.amount,status:getPmtStatus(pmt),ref:purchaseLabel(cp)});
       if(pmt.status!=='paid'&&pmt.date){const due=new Date(pmt.date+'T23:59:59');if(due>=now&&(due-now)/86400000<=REMINDER_DAYS)soon.push(pmt);}
     });
@@ -1403,13 +1462,12 @@ function renderEcheancier(studentId){
   const line=(l,v,strong,color)=>`<div style="display:flex;justify-content:space-between;align-items:baseline;padding:3px 0;font-size:${strong?'14':'12'}px;${strong?'font-weight:600;':''}${color?'color:'+color+';':''}"><span${strong?'':' style="color:var(--text2)"'}>${l}</span><span>${v}</span></div>`;
   const nb=Math.round(s.due/PRICE_PER_COURSE);
   const summary=(s.due>0||s.paidAll>0||s.resteDu>0)?`<div style="background:var(--bg2);border-radius:var(--radius);padding:10px 12px;margin-bottom:6px">
-    ${s.due>0?line(`Séances réservées à régler (${nb})`,s.due+' €'):''}
-    ${s.paidAll>0?line('Déjà réglé',s.paidAll.toFixed(0)+' €'):''}
     ${line('Montant restant dû',s.resteDu.toFixed(0)+' €',true,s.resteDu>0?'var(--red-text)':'var(--teal-mid)')}
   </div>`:'';
-  const soonHtml=soon.length?`<div style="background:var(--teal-light);border:.5px solid var(--teal-border);border-radius:var(--radius-lg);padding:12px 16px;margin-bottom:8px;font-size:12px;color:var(--teal-dark);display:flex;gap:10px;align-items:flex-start"><i class="ti ti-calendar-event" style="font-size:18px;flex-shrink:0" aria-hidden="true"></i><div><strong>Prochaine échéance</strong><br>${soon.map(p=>`À payer le ${formatDateFr(p.date)}${p.amount?` : ${parseFloat(p.amount).toFixed(0)} €`:''}`).join('<br>')}</div></div>`:'';
-  zone.innerHTML=soonHtml+`<div style="background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem">
-    <div style="font-size:13px;font-weight:500;color:var(--teal-dark);margin-bottom:8px;display:flex;align-items:center;gap:6px"><i class="ti ti-receipt" aria-hidden="true"></i> Mes échéances</div>
+  soon.sort((a,b)=>a.date.localeCompare(b.date));
+  const soonTag=soon.length?`<span style="font-size:11px;font-weight:500;color:var(--teal-dark);background:var(--teal-light);border-radius:20px;padding:2px 10px">Prochaine échéance le ${formatDateFr(soon[0].date)}</span>`:'';
+  zone.innerHTML=`<div style="background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem">
+    <div style="font-size:13px;font-weight:500;color:var(--teal-dark);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap"><span style="display:flex;align-items:center;gap:6px"><i class="ti ti-receipt" aria-hidden="true"></i> Mes échéances</span>${soonTag}</div>
     ${summary}
     ${items}
   </div>`;
@@ -1585,7 +1643,7 @@ function downloadFile(name,content,type){
   setTimeout(()=>URL.revokeObjectURL(a.href),2000);
 }
 window.exportData=async function(){
-  if(!isAdmin)return;
+  if(!isAdmin)return false;
   try{
     showToast("Préparation de la sauvegarde...");
     const cols=["periods","slots","students","bookings","cancelRequests","creditPurchases","notifications"];
@@ -1611,8 +1669,8 @@ window.exportData=async function(){
       lines.push([st.name,st.credits||0,bought,booked,paidC,paidA,pc,pa,nextTxt].map(esc).join(';'));
     });
     setTimeout(()=>downloadFile(`eleves-ateliers-${day}.csv`,'\ufeff'+lines.join('\n'),'text/csv;charset=utf-8'),600);
-    showToast("Sauvegarde téléchargée");
-  }catch(e){console.error(e);showToast("Erreur pendant la sauvegarde");}
+    showToast("Sauvegarde téléchargée");return true;
+  }catch(e){console.error(e);showToast("Erreur pendant la sauvegarde");return false;}
 };
 
 window.cancelBookingDirect=async function(bookingId,slotId){
