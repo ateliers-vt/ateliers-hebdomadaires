@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- VERSION-ETAPE-6C : admin réservations &amp; paiements, À relancer, bandeau échéance (28/10/2026) -->
+<!-- VERSION-ETAPE-6D : admin réservations &amp; paiements, À relancer, bandeau échéance (28/10/2026) -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -462,7 +462,7 @@ function today(){return toISO(new Date());}
 function purchaseLabel(cp){
   const ref=(cp.reference||'').trim();
   if(cp.creditsBought)return ref&&ref!=='Achat'?`Anciens crédits · ${ref}`:'Anciens crédits';
-  return ref||'Règlement';
+  return (!ref||ref==='Règlement')?'Séance(s) à régler':ref;
 }
 function getPmtStatus(pmt){if(!pmt)return'pending';if(pmt.status==='paid')return'paid';if(pmt.date&&new Date(pmt.date+'T23:59:59')<new Date())return'overdue';return'pending';}
 
@@ -1057,10 +1057,10 @@ function renderStudents(){
         <div class="avatar">${initials}</div>
         <div style="flex:1">
           <div style="font-weight:500;font-size:13px">${st.name}</div>
-          <div style="font-size:11px;color:var(--text2);margin-top:2px">Achetés : ${s.totalBought} · Séances : ${s.used} · Restants : ${s.remaining}${s.pendingCount>0?` · <span style="color:var(--red-text)">${s.pendingCount} échéance(s) en attente (${s.pendingAmount.toFixed(0)} €)</span>`:''}</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px">Effectués : ${s.done} · À venir : ${s.upcoming}${s.toReserve>0?` · À réserver : ${s.toReserve}`:''}${s.pendingCount>0?` · <span style="color:var(--red-text)">${s.pendingCount} échéance(s) en attente</span>`:''}</div>
           <div style="margin-top:4px"><span class="url-chip" onclick="copyUrl('${url}')"><i class="ti ti-link"></i> Copier lien</span></div>
         </div>
-        <span style="background:${low?'var(--red-light)':'var(--teal-light)'};color:${low?'var(--red-text)':'var(--teal-dark)'};border-radius:var(--radius);padding:2px 8px;font-size:12px;font-weight:500">${s.remaining} crédit(s)</span>
+        <span style="background:${s.resteDu>0?'var(--red-light)':'var(--teal-light)'};color:${s.resteDu>0?'var(--red-text)':'var(--teal-dark)'};border-radius:var(--radius);padding:2px 8px;font-size:12px;font-weight:500;white-space:nowrap">${s.resteDu>0?s.resteDu.toFixed(0)+' € à régler':'À jour'}</span>
         <button class="btn btn-sm" onclick="toggleEditStudent('${st.id}')"><i class="ti ti-pencil"></i></button>
         <button class="btn btn-sm btn-danger" onclick="removeStudent('${st.id}')"><i class="ti ti-trash"></i></button>
       </div>
@@ -1167,13 +1167,11 @@ function renderCreditPurchases(){
             <div style="flex:1;min-width:0">
               <input type="text" value="${cp.reference||'Achat'}" style="font-weight:500;font-size:13px;width:100%;border:none;border-bottom:.5px solid var(--border);border-radius:0;padding:2px 0;background:transparent;margin-bottom:6px" onchange="setPurchaseRef('${cp.id}',this.value)" title="Référence">
               <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-                <span style="font-size:11px;color:var(--text2)">${formatDateFr(cp.purchaseDate)}</span>
-                <span style="font-size:11px;color:var(--text2)">·</span>
                 ${cp.creditsBought?`<input type="number" value="${cp.creditsBought||0}" min="0" style="width:50px;font-size:11px;padding:2px 5px;border:.5px solid var(--border)" onchange="setPurchaseCredits('${cp.id}','${st.id}',${cp.creditsBought||0},this.value)" title="Crédits achetés"> <span style="font-size:11px;color:var(--text2)">crédits</span>
                 <span style="font-size:11px;color:var(--text2)">·</span>
                 `:''}
-                <input type="number" value="${totalAmt}" min="0" style="width:65px;font-size:11px;padding:2px 5px;border:.5px solid var(--border)" onchange="setPurchaseTotal('${cp.id}',this.value)" title="Montant total €"> <span style="font-size:11px;color:var(--text2)">€</span>
-                <span style="font-size:11px;color:var(--text2)">· ${pmts.length} échéance(s) · ${paidCount} payée(s)</span>
+                ${cp.creditsBought?`<input type="number" value="${totalAmt}" min="0" style="width:65px;font-size:11px;padding:2px 5px;border:.5px solid var(--border)" onchange="setPurchaseTotal('${cp.id}',this.value)" title="Montant total €"> <span style="font-size:11px;color:var(--text2)">€</span>`:''}
+                <span style="font-size:11px;color:var(--text2)">${cp.creditsBought?'· ':''}${pmts.length} échéance(s) · ${paidCount} payée(s)</span>
               </div>
             </div>
             <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-left:8px">
@@ -1215,7 +1213,7 @@ window.showNewPurchaseModal=function(studentId,studentName){
       <div class="field"><label>Élève</label><select id="pmStudentId" style="width:100%">${selOptions}</select></div>
       <div class="field"><label>Référence</label><input type="text" id="pmRef" placeholder="ex: Trimestre automne 2026" style="width:100%"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <div class="field"><label>Date d'achat</label><input type="date" id="pmDate" value="${today()}" style="width:auto"></div>
+        <input type="hidden" id="pmDate" value="${today()}">
         <input type="hidden" id="pmCredits" value="0">
         <div class="field"><label>Montant total (€)</label><input type="number" id="pmTotal" value="${pre}" min="0" style="width:90px" oninput="updatePmCalc()"></div>
       </div>
@@ -1409,7 +1407,7 @@ function renderEcheancier(studentId){
     ${s.paidAll>0?line('Déjà réglé',s.paidAll.toFixed(0)+' €'):''}
     ${line('Montant restant dû',s.resteDu.toFixed(0)+' €',true,s.resteDu>0?'var(--red-text)':'var(--teal-mid)')}
   </div>`:'';
-  const soonHtml=soon.length?`<div style="background:var(--amber-light);border:.5px solid #EF9F27;border-radius:var(--radius-lg);padding:12px 16px;margin-bottom:8px;font-size:12px;color:var(--amber-text);display:flex;gap:10px;align-items:flex-start"><i class="ti ti-bell-ringing" style="font-size:18px;flex-shrink:0" aria-hidden="true"></i><div><strong>Une échéance approche</strong><br>${soon.map(p=>`À régler avant le ${formatDateFr(p.date)}${p.amount?` : ${parseFloat(p.amount).toFixed(0)} €`:''}`).join('<br>')}</div></div>`:'';
+  const soonHtml=soon.length?`<div style="background:var(--teal-light);border:.5px solid var(--teal-border);border-radius:var(--radius-lg);padding:12px 16px;margin-bottom:8px;font-size:12px;color:var(--teal-dark);display:flex;gap:10px;align-items:flex-start"><i class="ti ti-calendar-event" style="font-size:18px;flex-shrink:0" aria-hidden="true"></i><div><strong>Prochaine échéance</strong><br>${soon.map(p=>`À payer le ${formatDateFr(p.date)}${p.amount?` : ${parseFloat(p.amount).toFixed(0)} €`:''}`).join('<br>')}</div></div>`:'';
   zone.innerHTML=soonHtml+`<div style="background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem">
     <div style="font-size:13px;font-weight:500;color:var(--teal-dark);margin-bottom:8px;display:flex;align-items:center;gap:6px"><i class="ti ti-receipt" aria-hidden="true"></i> Mes échéances</div>
     ${summary}
