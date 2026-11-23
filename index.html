@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- VERSION-ETAPE-7F : admin réservations &amp; paiements, À relancer, bandeau échéance (28/10/2026) -->
+<!-- VERSION-ETAPE-7H : admin réservations &amp; paiements, À relancer, bandeau échéance (28/10/2026) -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -1087,29 +1087,33 @@ window.rejectCancel=async function(requestId){
 // ── STUDENTS ─────────────────────────────────────────────────
 function studentStats(studentId){
   const purchases=creditPurchases.filter(cp=>cp.studentId===studentId);
-  const totalBought=purchases.reduce((n,cp)=>n+(cp.creditsBought||0),0);
+  const totalBought=purchases.reduce((n,cp)=>n+(cp.creditsBought||0),0);   // cours inclus dans les anciens forfaits
   const confirmed=bookings.filter(b=>b.studentId===studentId&&b.status==='confirmed');
-  const used=confirmed.length;
-  const st=students.find(x=>x.id===studentId);
-  const remaining=st?(st.credits||0):0;                 // cours restants d'un ancien forfait
-  let pendingCount=0,pendingAmount=0,plannedNew=0,paidNew=0,paidAll=0,pendingForfait=0;
+  const used=confirmed.length;                                              // tous les cours réservés
+  const extra=Math.max(0,used-totalBought);                                 // cours réservés au-delà des forfaits : 35 € chacun
+  const remaining=Math.max(0,totalBought-used);                             // cours de forfait encore à réserver
+  let pendingCount=0,pendingAmount=0,plannedNew=0,paidNew=0,paidAll=0,sumPayments=0,forfaitTotal=0;
   purchases.forEach(cp=>{
+    if(cp.creditsBought)forfaitTotal+=(parseFloat(cp.totalAmount)||0);       // prix des anciens forfaits
     (cp.payments||[]).forEach(pmt=>{
       if(!pmt)return;
       const amt=parseFloat(pmt.amount)||0,paid=getPmtStatus(pmt)==='paid';
+      sumPayments+=amt;                                                      // toutes les échéances saisies
       if(paid)paidAll+=amt;
-      if(!cp.creditsBought){plannedNew+=amt;if(paid)paidNew+=amt;}   // règlement sans forfait
-      else if(!paid)pendingForfait+=amt;                            // reste d'un ancien forfait
+      if(!cp.creditsBought){plannedNew+=amt;if(paid)paidNew+=amt;}           // règlement sans forfait
       if(!paid){pendingCount++;pendingAmount+=amt;}
     });
   });
   let upcoming=0,done=0;
   confirmed.forEach(b=>{const sl=slots.find(x=>x.id===b.slotId);if(sl&&hoursUntil(sl.date,sl.time)>0)upcoming++;else done++;});
-  const due=confirmed.filter(b=>b.viaCredit===false).length*PRICE_PER_COURSE;   // s'incrémente à chaque cours réservé hors forfait
-  const resteDu=Math.max(0,Math.max(due,plannedNew)-paidNew)+pendingForfait;    // ne dépend pas de la saisie des échéances
-  const toBook=Math.max(0,Math.floor((plannedNew-due)/PRICE_PER_COURSE));       // cours déjà couverts par un règlement, pas encore réservés
-  const toPlan=Math.max(0,due-plannedNew);                                      // part du dû sans échéance définie
-  return{totalBought,used,remaining,pendingCount,pendingAmount,upcoming,done,due,plannedNew,paidNew,paidAll,pendingForfait,resteDu,toBook,toPlan,toReserve:remaining+toBook};
+  const due=extra*PRICE_PER_COURSE;
+  // Montant dû = prix des forfaits + cours hors forfait (ou règlements saisis s'ils sont plus élevés)
+  const owed=forfaitTotal+Math.max(due,plannedNew);
+  const resteDu=Math.max(0,owed-paidAll);                                    // dû - déjà réglé, quelles que soient les échéances posées
+  const toBook=Math.max(0,Math.floor((plannedNew-due)/PRICE_PER_COURSE));   // cours couverts par un règlement, pas encore réservés
+  const toPlan=Math.max(0,owed-sumPayments);                                 // part du dû sans échéance définie
+  const over=Math.max(0,sumPayments-owed);                                   // échéances saisies au-delà du dû
+  return{totalBought,used,remaining,pendingCount,pendingAmount,upcoming,done,due,owed,sumPayments,plannedNew,paidNew,paidAll,resteDu,toBook,toPlan,over,toReserve:remaining+toBook};
 }
 
 function renderStudents(){
@@ -1220,9 +1224,9 @@ function renderCreditPurchases(){
         <button class="btn btn-sm btn-primary" onclick="showNewPurchaseModal('${st.id}','${st.name.replace(/'/g,"\\'")}')"><i class="ti ti-plus"></i> Ajouter un règlement</button>
       </div>
       <div class="student-stats">
-        ${box(s.done,'cours effectués')}${box(s.upcoming,'planifiés à venir')}${s.toReserve>0?box(s.toReserve,'à réserver',s.toReserve<2?'var(--red-text)':'var(--teal-mid)'):''}${(s.due>0||s.plannedNew>0)?box(s.due+' €','montant dû'):''}${s.paidAll>0?box(s.paidAll.toFixed(0)+' €','déjà réglé'):''}${box(s.resteDu.toFixed(0)+' €','reste à régler',s.resteDu>0?'var(--red-text)':'var(--teal-mid)')}
+        ${box(s.done,'cours effectués')}${box(s.upcoming,'planifiés à venir')}${s.toReserve>0?box(s.toReserve,'à réserver',s.toReserve<2?'var(--red-text)':'var(--teal-mid)'):''}${s.owed>0?box(s.owed.toFixed(0)+' €','montant dû'):''}${s.paidAll>0?box(s.paidAll.toFixed(0)+' €','déjà réglé'):''}${box(s.resteDu.toFixed(0)+' €','reste à régler',s.resteDu>0?'var(--red-text)':'var(--teal-mid)')}
       </div>
-      ${s.toPlan>0?`<div class="notice-warning" style="margin-bottom:6px">Échéances à définir : ${s.toPlan.toFixed(0)} € (dû ${s.due} €, échéances saisies ${s.plannedNew.toFixed(0)} €). Le montant dû reste inchangé.</div>`:(s.toBook>0?`<div class="notice" style="margin-bottom:6px;background:var(--teal-light);color:var(--teal-dark)">Les règlements saisis couvrent encore ${s.toBook} cours à réserver.</div>`:'')}
+      ${s.over>0?`<div class="notice-warning" style="margin-bottom:6px">Les échéances saisies (${s.sumPayments.toFixed(0)} €) dépassent le montant dû (${s.owed.toFixed(0)} €) de ${s.over.toFixed(0)} €. À vérifier.</div>`:s.toPlan>0?`<div class="notice-warning" style="margin-bottom:6px">Échéances à définir : ${s.toPlan.toFixed(0)} € (dû ${s.owed.toFixed(0)} €, échéances saisies ${s.sumPayments.toFixed(0)} €). Le montant dû reste inchangé.</div>`:(s.toBook>0?`<div class="notice" style="margin-bottom:6px;background:var(--teal-light);color:var(--teal-dark)">Les règlements saisis couvrent encore ${s.toBook} cours à réserver.</div>`:'')}
     </div>`;
     if(!purchases.length){html+=`<div class="notice">Aucun achat enregistré.</div>`;}
     else{
@@ -1693,7 +1697,7 @@ window.exportData=async function(){
       next.sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999'));
       const fmt=d=>d?d.split('-').reverse().join('/'):'sans date';
       const nextTxt=next.map(pm=>`${fmt(pm.date)} (${parseFloat(pm.amount)||0} €)`).join(' | ');
-      lines.push([st.name,st.credits||0,bought,booked,paidC,paidA,pc,pa,nextTxt].map(esc).join(';'));
+      lines.push([st.name,Math.max(0,bought-booked),bought,booked,paidC,paidA,pc,pa,nextTxt].map(esc).join(';'));
     });
     setTimeout(()=>downloadFile(`eleves-ateliers-${day}.csv`,'\ufeff'+lines.join('\n'),'text/csv;charset=utf-8'),600);
     showToast("Sauvegarde téléchargée");return true;
